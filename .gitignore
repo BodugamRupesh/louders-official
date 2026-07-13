@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Pytest
+.pytest_cache/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.*
+
+# Database files
+*.db
+*.sqlite*
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Build artifacts
+*.pyc
+*.pyo
+*.pyd
+
+# Misc
+*.dist-info/
+*.egg-info/
+site-packages/
+
+# Generated frontend assets
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
