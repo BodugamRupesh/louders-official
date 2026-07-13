@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOUD Platform | Enterprise-Grade Licensing Infrastructure</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Main Style Sheet -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-primary text-primary">
+    <!-- Full-screen WebGL Background -->
+    <div class="canvas-container">
+        <canvas id="hero-3d-canvas"></canvas>
+    </div>
+
+    <!-- Aurora background elements -->
+    <div class="aurora-bg">
+        <div class="aurora aurora-1"></div>
+        <div class="aurora aurora-2"></div>
+        <div class="aurora aurora-3"></div>
+    </div>
+
+    <!-- Notification Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Cinematic Loading Overlay -->
+    <div id="global-loader" class="global-loader">
+        <div class="loader-brand">
+            <div class="logo-icon font-sora pulse">L</div>
+            <h2 class="font-sora logo-text" style="font-size: 2.2rem; margin-top: 1.5rem; letter-spacing: -0.03em;">LOUD<span class="text-cyan">.</span></h2>
+        </div>
+        <div class="loader-scan-line"></div>
+        <div class="loader-console font-mono" id="loader-console-log">
+            <div class="console-line">> Establishing secure socket...</div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 1. LANDING PAGE VIEW -->
+    <!-- ========================================== -->
+    <div id="view-landing" class="view-section active">
+        <!-- Landing Header -->
+        <header class="landing-header">
+            <div class="container header-container">
+                <a href="#/" class="logo">
+                    <span class="logo-icon font-sora">L</span>
+                    <span class="logo-text font-sora">LOUD<span class="text-cyan font-sora">.</span></span>
+                </a>
+                <nav class="landing-nav">
+                    <a href="#/pricing" class="nav-link">Pricing</a>
+                    <a href="#/how-it-works" class="nav-link">Docs</a>
+                    <a href="#/login" class="btn btn-secondary font-sora header-console-btn">Admin Console</a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="container hero-container">
+                <div class="hero-content">
+                    <div class="badge font-sora animate-fade-in"><span class="badge-dot"></span>V2.0 REDESIGNED</div>
+                    <h1 class="hero-title font-sora">
+                        <span class="animated-word w-1">Protect.</span>
+                        <span class="animated-word w-2">License.</span>
+                        <span class="animated-word w-3 gradient-text">Scale.</span>
+                    </h1>
+                    <p class="hero-subtitle animate-fade-in-up">Enterprise-grade licensing infrastructure for browser extensions and software. Secure integrations, RBAC validation, and instant activations.</p>
+                    <div class="hero-actions animate-fade-in-up-delay">
+                        <a href="#/login" class="btn btn-primary font-sora btn-glow">Get Started <i data-lucide="arrow-right" class="btn-icon"></i></a>
+                        <a href="#/how-it-works" class="btn btn-secondary font-sora btn-glow-cyan">How It Works</a>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="hologram-container">
+                        <div class="hologram-overlay"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features-section scroll-reveal" id="features">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title font-sora">Built for High-Velocity Software Teams</h2>
+                    <p class="section-subtitle">Secure, fast, and resilient operations to protect your extension licenses.</p>
+                </div>
+                <div class="features-grid">
+                    <div class="glass-card feature-card card-tilt">
+                        <div class="feature-icon-wrapper cyan-glow">
+                            <i data-lucide="shield-check" class="text-cyan"></i>
+                        </div>
+                        <h3 class="feature-card-title font-sora">Cryptographic Validation</h3>
+                        <p class="feature-card-desc">FastAPI-powered RBAC checks combined with cryptographically generated license tokens for tamper-proof activations.</p>
+                        <div class="card-glow-overlay"></div>
+                    </div>
+                    <div class="glass-card feature-card card-tilt">
+                        <div class="feature-icon-wrapper purple-glow">
+                            <i data-lucide="cpu" class="text-purple"></i>
+                        </div>
+                        <h3 class="feature-card-title font-sora">Device Fingerprinting</h3>
+                        <p class="feature-card-desc">Lock license execution to specific devices. Track bound instances, browsers, OS types, and extension versions.</p>
+                        <div class="card-glow-overlay"></div>
+                    </div>
+                    <div class="glass-card feature-card card-tilt">
+                        <div class="feature-icon-wrapper blue-glow">
+                            <i data-lucide="zap" class="text-blue"></i>
+                        </div>
+                        <h3 class="feature-card-title font-sora">Sub-10ms Heartbeats</h3>
+                        <p class="feature-card-desc">Perform device heartbeat checkups with minimal overhead. Keep extension validation completely transparent.</p>
+                        <div class="card-glow-overlay"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Benefits Section -->
+        <section class="benefits-section scroll-reveal" id="how-it-works">
+            <div class="container benefits-container">
+                <div class="benefits-visual">
+                    <div class="glass-card visual-card">
+                        <div class="card-header-bar">
+                            <span class="dot-btn red"></span>
+                            <span class="dot-btn yellow"></span>
+                            <span class="dot-btn green"></span>
+                        </div>
+                        <div class="card-code-block font-mono">
+                            <span class="code-line text-blue">const</span> <span class="code-line text-cyan">loud</span> = <span class="code-line text-purple">new</span> <span class="code-line text-emerald">LOUDLicense</span>(<span class="code-line text-amber">"lp_05aF...8a"</span>);<br>
+                            <span class="code-line text-blue">const</span> <span class="code-line text-cyan">res</span> = <span class="code-line text-purple">await</span> <span class="code-line text-cyan">loud</span>.verify({<br>
+                            &nbsp;&nbsp;key: <span class="code-line text-amber">"LOUD-A98B-77CD-EF01"</span>,<br>
+                            &nbsp;&nbsp;deviceUuid: <span class="code-line text-amber">"device_99712a"</span><br>
+                            });<br>
+                            <span class="code-line text-purple">if</span> (<span class="code-line text-cyan">res</span>.success) {<br>
+                            &nbsp;&nbsp;<span class="code-line text-emerald">console</span>.log(<span class="code-line text-emerald">"Access granted!"</span>);<br>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="benefits-content">
+                    <h2 class="section-title font-sora text-left">Modern SDK Integrations</h2>
+                    <p class="section-subtitle text-left">Deploy licensing scripts with only 5 lines of code. Secure browser actions, restrict extension popups, and check state on startup.</p>
+                    <ul class="benefits-list">
+                        <li><i data-lucide="check" class="text-cyan"></i> Native Chrome, Firefox, and Edge Manifest V3 support</li>
+                        <li><i data-lucide="check" class="text-cyan"></i> Lightweight background verification token</li>
+                        <li><i data-lucide="check" class="text-cyan"></i> Automated rate-limiting and device control</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing Section -->
+        <section id="pricing" class="pricing-section scroll-reveal">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title font-sora">Flexible Pricing for Growing Teams</h2>
+                    <p class="section-subtitle">Scale your products without license management overhead.</p>
+                </div>
+                <div class="pricing-grid">
+                    <div class="glass-card pricing-card">
+                        <div class="pricing-tier font-sora">Starter</div>
+                        <div class="pricing-price font-sora">$19<span class="price-period">/mo</span></div>
+                        <p class="pricing-desc">Perfect for side projects and bootstrap extensions.</p>
+                        <ul class="pricing-features">
+                            <li><i data-lucide="check" class="text-emerald"></i> 1 Product</li>
+                            <li><i data-lucide="check" class="text-emerald"></i> Up to 500 Licenses</li>
+                            <li><i data-lucide="check" class="text-emerald"></i> 1 Device limit per plan</li>
+                            <li><i data-lucide="check" class="text-emerald"></i> standard metrics</li>
+                        </ul>
+                        <a href="#/login" class="btn btn-secondary pricing-btn font-sora btn-glow-cyan">Get Started</a>
+                    </div>
+                    <div class="glass-card pricing-card featured">
+                        <div class="pricing-featured-tag font-sora">RECOMMENDED</div>
+                        <div class="pricing-tier font-sora">Pro</div>
+                        <div class="pricing-price font-sora">$49<span class="price-period">/mo</span></div>
+                        <p class="pricing-desc">For active businesses and multi-device integrations.</p>
+                        <ul class="pricing-features">
+                            <li><i data-lucide="check" class="text-emerald"></i> Unlimited Products</li>
+                            <li><i data-lucide="check" class="text-emerald"></i> Up to 5,000 Licenses</li>
+                            <li><i data-lucide="check" class="text-emerald"></i> Custom Device limit binding</li>
+                            <li><i data-lucide="check" class="text-emerald"></i> Advanced Admin controls</li>
+                        </ul>
+                        <a href="#/login" class="btn btn-primary pricing-btn font-sora btn-glow">Start Pro Free Trial</a>
+                    </div>
+                    <div class="glass-card pricing-card">
+                        <div class="pricing-tier font-sora">Enterprise</div>
+                        <div class="pricing-price font-sora">Custom</div>
+                        <p class="pricing-desc">For large scaling platforms requiring custom solutions.</p>
+                        <ul class="pricing-features">
+                            <li><i data-lucide="check" class="text-emerald"></i> Dedicated Instance URL</li>
+                            <li><i data-lucide="check" class="text-emerald"></i> Unlimited Licenses & Devices</li>
+                            <li><i data-lucide="check" class="text-emerald"></i> 24/7 SLA Uptime & Premium Support</li>
+                            <li><i data-lucide="check" class="text-emerald"></i> Custom RBAC configurations</li>
+                        </ul>
+                        <a href="#/login" class="btn btn-secondary pricing-btn font-sora btn-glow-cyan">Contact Sales</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="faq-section scroll-reveal">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title font-sora">Frequently Asked Questions</h2>
+                    <p class="section-subtitle">Got questions? We have cyber-grade answers.</p>
+                </div>
+                <div class="faq-accordion">
+                    <div class="glass-card faq-item">
+                        <div class="faq-question font-sora">How does device binding work? <i data-lucide="plus" class="faq-icon"></i></div>
+                        <div class="faq-answer">When a user activates a license, their browser and operating system details are gathered and assigned a UUID. Future checks verify the UUID matches the license parameters. If the max device limit is reached, registrations fail.</div>
+                    </div>
+                    <div class="glass-card faq-item">
+                        <div class="faq-question font-sora">Can I integrate this with stripe? <i data-lucide="plus" class="faq-icon"></i></div>
+                        <div class="faq-answer">Yes, our API includes webhooks and routes to create licenses instantly upon Stripe Checkout completions. Simply call the `/api/v1/licenses` endpoint using your Product API Key.</div>
+                    </div>
+                    <div class="glass-card faq-item">
+                        <div class="faq-question font-sora">Are license tokens secure? <i data-lucide="plus" class="faq-icon"></i></div>
+                        <div class="faq-answer">Yes. On activation, the system issues a temporary JWT containing verification scopes. Extensions use this JWT token in memory, meaning your database remains protected from request spikes.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials -->
+        <section class="testimonials-section scroll-reveal">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title font-sora">Trusted by Top Creators</h2>
+                </div>
+                <div class="testimonials-grid">
+                    <div class="glass-card testimonial-card card-tilt">
+                        <p class="testimonial-quote">"LOUD allowed us to setup licensing for our Chrome Extension in less than an hour. The glass design is beautiful and uvicorn response time is instant."</p>
+                        <div class="testimonial-user">
+                            <div class="user-avatar cyan-glow">A</div>
+                            <div>
+                                <h4 class="font-sora">Alex Rivers</h4>
+                                <p>Founder, WebTools Inc.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass-card testimonial-card card-tilt">
+                        <p class="testimonial-quote">"The 3D key rotation is not the only thing that is premium here. The database security layers and owner permission restrictions are enterprise grade."</p>
+                        <div class="testimonial-user">
+                            <div class="user-avatar purple-glow">S</div>
+                            <div>
+                                <h4 class="font-sora">Sarah Chen</h4>
+                                <p>Product Lead, ExtensionPro</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="landing-footer">
+            <div class="container footer-container">
+                <p>&copy; 2026 LOUD Platform. All rights reserved. Secure software license tracking.</p>
+                <div class="footer-links">
+                    <a href="#/">Security</a>
+                    <a href="#/">API Docs</a>
+                    <a href="#/">Status</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 2. AUTHENTICATION VIEW -->
+    <!-- ========================================== -->
+    <div id="view-login" class="view-section">
+        <div class="login-wrapper">
+            <div class="glass-card login-card card-tilt">
+                <div class="login-header">
+                    <a href="#/" class="logo logo-center">
+                        <span class="logo-icon font-sora">L</span>
+                        <span class="logo-text font-sora">LOUD<span class="text-cyan font-sora">.</span></span>
+                    </a>
+                    <h2 class="login-title font-sora">Access Dashboard</h2>
+                    <p class="login-subtitle">Enter your admin credentials to authenticate</p>
+                </div>
+                <form id="login-form" class="login-form">
+                    <div class="form-group">
+                        <label for="login-username" class="font-sora">Username</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="user" class="input-icon"></i>
+                            <input type="text" id="login-username" placeholder="e.g. admin" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password" class="font-sora">Password</label>
+                        <div class="input-wrapper">
+                            <i data-lucide="lock" class="input-icon"></i>
+                            <input type="password" id="login-password" placeholder="••••••••" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full font-sora btn-glow">
+                        Sign In <i data-lucide="log-in" class="btn-icon"></i>
+                    </button>
+                </form>
+                <div class="login-footer">
+                    <a href="#/" class="back-link"><i data-lucide="chevron-left"></i> Return to Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 3. DASHBOARD MAIN VIEW -->
+    <!-- ========================================== -->
+    <div id="view-dashboard" class="view-section">
+        <div class="dashboard-layout">
+            <!-- Sidebar Navigation -->
+            <aside class="dashboard-sidebar">
+                <div class="sidebar-brand">
+                    <a href="#/dashboard/overview" class="logo">
+                        <span class="logo-icon font-sora">L</span>
+                        <span class="logo-text font-sora">LOUD<span class="text-cyan font-sora">.</span></span>
+                    </a>
+                </div>
+                <nav class="sidebar-menu">
+                    <a href="#/dashboard/overview" class="sidebar-item active" data-tab="overview">
+                        <i data-lucide="layout-dashboard"></i> Overview
+                    </a>
+                    <a href="#/dashboard/products" class="sidebar-item" data-tab="products">
+                        <i data-lucide="package"></i> Products
+                    </a>
+                    <a href="#/dashboard/plans" class="sidebar-item" data-tab="plans">
+                        <i data-lucide="credit-card"></i> Plans
+                    </a>
+                    <a href="#/dashboard/customers" class="sidebar-item" data-tab="customers">
+                        <i data-lucide="users"></i> Customers
+                    </a>
+                    <a href="#/dashboard/licenses" class="sidebar-item" data-tab="licenses">
+                        <i data-lucide="key"></i> Licenses
+                    </a>
+                    <a href="#/dashboard/devices" class="sidebar-item" data-tab="devices">
+                        <i data-lucide="smartphone"></i> Devices
+                    </a>
+                    <a href="#/dashboard/admins" class="sidebar-item" data-tab="admins">
+                        <i data-lucide="shield"></i> Admins
+                    </a>
+                    <a href="#/dashboard/analytics" class="sidebar-item" data-tab="analytics">
+                        <i data-lucide="line-chart"></i> Analytics
+                    </a>
+                    <a href="#/dashboard/settings" class="sidebar-item" data-tab="settings">
+                        <i data-lucide="settings"></i> Settings
+                    </a>
+                </nav>
+                <div class="sidebar-footer">
+                    <div class="sidebar-user">
+                        <div class="user-avatar-small font-sora" id="sidebar-user-avatar">A</div>
+                        <div class="user-info">
+                            <span class="user-name font-sora" id="sidebar-username">Admin</span>
+                            <span class="user-role" id="sidebar-user-role">Owner</span>
+                        </div>
+                    </div>
+                    <button class="btn-logout" id="btn-logout-sidebar" title="Log Out">
+                        <i data-lucide="log-out"></i>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Panel Content -->
+            <main class="dashboard-panel">
+                <!-- Top Header Navigation Redesigned -->
+                <header class="dashboard-header">
+                    <div class="header-left">
+                        <div class="breadcrumbs font-mono">
+                            <span class="text-secondary">SYSTEM</span>
+                            <span class="breadcrumb-slash">/</span>
+                            <span class="text-secondary">DASHBOARD</span>
+                            <span class="breadcrumb-slash">/</span>
+                            <span class="text-cyan uppercase" id="breadcrumb-active">OVERVIEW</span>
+                        </div>
+                        <h2 class="panel-title font-sora" id="panel-title-text">Overview</h2>
+                    </div>
+
+                    <div class="header-center">
+                        <div class="header-search">
+                            <i data-lucide="search" class="search-icon"></i>
+                            <input type="text" placeholder="Global search telemetry..." id="global-header-search">
+                        </div>
+                    </div>
+
+                    <div class="header-right">
+                        <!-- Workspace selector -->
+                        <div class="workspace-selector font-sora">
+                            <i data-lucide="layers" class="workspace-icon"></i>
+                            <span>NODE_US_EAST</span>
+                        </div>
+
+                        <!-- Connection Status -->
+                        <div class="connection-status-badge">
+                            <span class="pulse-beacon green"></span>
+                            <span class="status-lbl font-mono">API CONNECTED</span>
+                        </div>
+
+                        <!-- Notifications Bell -->
+                        <div class="header-notification-bell">
+                            <i data-lucide="bell" style="width:20px; height:20px; color:var(--text-secondary);"></i>
+                            <span class="notification-badge"></span>
+                        </div>
+
+                        <!-- Quick actions -->
+                        <div class="quick-actions-bar">
+                            <button id="quick-issue-license" class="btn btn-secondary btn-sm font-sora btn-glow-cyan">
+                                <i data-lucide="plus"></i> Issue License
+                            </button>
+                        </div>
+                        <!-- Profile menu trigger -->
+                        <div class="profile-dropdown-wrapper">
+                            <button class="profile-btn" id="profile-dropdown-btn">
+                                <span class="profile-initial font-sora" id="header-user-avatar">A</span>
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Panel Subviews Container -->
+                <div class="panel-body">
+
+                    <!-- Subview: Overview -->
+                    <div id="subview-overview" class="subview-pane active">
+                        <!-- Stats Grid -->
+                        <div class="metrics-grid">
+                            <div class="glass-card metric-card card-tilt">
+                                <div class="metric-header">
+                                    <span class="metric-title font-sora">Total Revenue</span>
+                                    <div class="metric-icon green-glow"><i data-lucide="dollar-sign"></i></div>
+                                </div>
+                                <div class="metric-value font-mono count-up" id="stat-revenue" data-target="0.00">$0.00</div>
+                                <div class="metric-change" id="stat-revenue-diff">+0% this month</div>
+                                <div class="sparkline-container">
+                                    <svg class="sparkline-svg" viewBox="0 0 80 20">
+                                        <path class="sparkline-path" id="sparkline-revenue" d="M 0 16 L 10 14 L 20 18 L 30 12 L 40 15 L 50 8 L 60 13 L 70 6 L 80 10" style="stroke: #10B981; filter: drop-shadow(0 0 2px #10B981);"></path>
+                                    </svg>
+                                </div>
+                                <div class="card-glow-overlay"></div>
+                            </div>
+                            <div class="glass-card metric-card card-tilt">
+                                <div class="metric-header">
+                                    <span class="metric-title font-sora">Active Licenses</span>
+                                    <div class="metric-icon blue-glow"><i data-lucide="key"></i></div>
+                                </div>
+                                <div class="metric-value font-mono count-up" id="stat-licenses" data-target="0">0</div>
+                                <div class="metric-change" id="stat-licenses-diff">0 suspended</div>
+                                <div class="sparkline-container">
+                                    <svg class="sparkline-svg" viewBox="0 0 80 20">
+                                        <path class="sparkline-path" id="sparkline-licenses" d="M 0 18 L 10 15 L 20 12 L 30 16 L 40 10 L 50 14 L 60 8 L 70 12 L 80 5" style="stroke: #8B5CF6; filter: drop-shadow(0 0 2px #8B5CF6);"></path>
+                                    </svg>
+                                </div>
+                                <div class="card-glow-overlay"></div>
+                            </div>
+                            <div class="glass-card metric-card card-tilt">
+                                <div class="metric-header">
+                                    <span class="metric-title font-sora">Bound Devices</span>
+                                    <div class="metric-icon cyan-glow"><i data-lucide="smartphone"></i></div>
+                                </div>
+                                <div class="metric-value font-mono count-up" id="stat-devices" data-target="0">0</div>
+                                <div class="metric-change" id="stat-devices-diff">Heartbeat active</div>
+                                <div class="sparkline-container">
+                                    <svg class="sparkline-svg" viewBox="0 0 80 20">
+                                        <path class="sparkline-path" id="sparkline-devices" d="M 0 12 L 10 16 L 20 10 L 30 14 L 40 8 L 50 12 L 60 6 L 70 10 L 80 4" style="stroke: #22D3EE; filter: drop-shadow(0 0 2px #22D3EE);"></path>
+                                    </svg>
+                                </div>
+                                <div class="card-glow-overlay"></div>
+                            </div>
+                            <div class="glass-card metric-card card-tilt">
+                                <div class="metric-header">
+                                    <span class="metric-title font-sora">Products Tracked</span>
+                                    <div class="metric-icon purple-glow"><i data-lucide="package"></i></div>
+                                </div>
+                                <div class="metric-value font-mono count-up" id="stat-products" data-target="0">0</div>
+                                <div class="metric-change" id="stat-products-diff">0 archived</div>
+                                <div class="sparkline-container">
+                                    <svg class="sparkline-svg" viewBox="0 0 80 20">
+                                        <path class="sparkline-path" id="sparkline-products" d="M 0 15 L 10 15 L 20 12 L 30 12 L 40 9 L 50 9 L 60 6 L 70 6 L 80 3" style="stroke: #3B82F6; filter: drop-shadow(0 0 2px #3B82F6);"></path>
+                                    </svg>
+                                </div>
+                                <div class="card-glow-overlay"></div>
+                            </div>
+                        </div>
+
+                        <!-- Main Grid Layout -->
+                        <div class="dashboard-grid">
+                            <!-- Left: Dynamic Chart -->
+                            <div class="glass-card grid-card col-span-2 scroll-reveal">
+                                <div class="card-header">
+                                    <h3 class="card-title font-sora">License Activations</h3>
+                                    <span class="card-subtitle">Monthly telemetry log trends</span>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="overview-chart"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- Right: Recent Activity Log -->
+                            <div class="glass-card grid-card scroll-reveal">
+                                <div class="card-header">
+                                    <h3 class="card-title font-sora">Recent Log Activity</h3>
+                                    <span class="card-subtitle">Global verification logs</span>
+                                </div>
+                                <div class="activity-log-stream" id="recent-logs-list">
+                                    <div class="stream-empty">No telemetry logged.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Subview: Products -->
+                    <div id="subview-products" class="subview-pane">
+                        <div class="table-actions">
+                            <div class="search-box">
+                                <i data-lucide="search" class="search-icon"></i>
+                                <input type="text" id="search-products-input" placeholder="Search by product name/slug...">
+                            </div>
+                            <button class="btn btn-primary font-sora btn-glow" id="btn-create-product">
+                                <i data-lucide="plus"></i> Add Product
+                            </button>
+                        </div>
+                        <div class="table-container glass-card">
+                            <table class="data-table" id="products-table">
+                                <thead>
+                                    <tr>
+                                        <th class="font-sora">Product Details</th>
+                                        <th class="font-sora">Slug</th>
+                                        <th class="font-sora">Version</th>
+                                        <th class="font-sora">API Key Access</th>
+                                        <th class="font-sora">Status</th>
+                                        <th class="font-sora">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Populated programmatically -->
+                                </tbody>
+                            </table>
+                            <div class="table-empty" id="products-table-empty">No products configured. Click "Add Product" to create one.</div>
+                        </div>
+                    </div>
+
+                    <!-- Subview: Plans -->
+                    <div id="subview-plans" class="subview-pane">
+                        <div class="table-actions">
+                            <div class="search-box">
+                                <i data-lucide="search" class="search-icon"></i>
+                                <input type="text" id="search-plans-input" placeholder="Search by plan name...">
+                            </div>
+                            <button class="btn btn-primary font-sora btn-glow" id="btn-create-plan">
+                                <i data-lucide="plus"></i> Create Plan
+                            </button>
+                        </div>
+                        <div class="table-container glass-card">
+                            <table class="data-table" id="plans-table">
+                                <thead>
+                                    <tr>
+                                        <th class="font-sora">Plan Name</th>
+                                        <th class="font-sora">Duration</th>
+                                        <th class="font-sora">Max Devices</th>
+                                        <th class="font-sora">Price (USD)</th>
+                                        <th class="font-sora">Status</th>
+                                        <th class="font-sora">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Populated programmatically -->
+                                </tbody>
+                            </table>
+                            <div class="table-empty" id="plans-table-empty">No billing plans found. Create a plan to enable licensing.</div>
+                        </div>
+                    </div>
+
+                    <!-- Subview: Customers -->
+                    <div id="subview-customers" class="subview-pane">
+                        <div class="table-actions">
+                            <div class="search-box">
+                                <i data-lucide="search" class="search-icon"></i>
+                                <input type="text" id="search-customers-input" placeholder="Search by name, email, phone...">
+                            </div>
+                            <button class="btn btn-primary font-sora btn-glow" id="btn-create-customer">
+                                <i data-lucide="plus"></i> Add Customer
+                            </button>
+                        </div>
+                        <div class="table-container glass-card">
+                            <table class="data-table" id="customers-table">
+                                <thead>
+                                    <tr>
+                                        <th class="font-sora">Customer Profile</th>
+                                        <th class="font-sora">Contact Phone</th>
+                                        <th class="font-sora">Registered Date</th>
+                                        <th class="font-sora">License Count</th>
+                                        <th class="font-sora">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Populated programmatically -->
+                                </tbody>
+                            </table>
+                            <div class="table-empty" id="customers-table-empty">No customer accounts registered.</div>
+                        </div>
+                    </div>
+
+                    <!-- Subview: Licenses -->
+                    <div id="subview-licenses" class="subview-pane">
+                        <div class="table-actions-stack">
+                            <div class="table-actions">
+                                <div class="search-box">
+                                    <i data-lucide="search" class="search-icon"></i>
+                                    <input type="text" id="search-licenses-input" placeholder="Search by license key...">
+                                </div>
+                                <button class="btn btn-primary font-sora btn-glow" id="btn-issue-license-pane">
+                                    <i data-lucide="plus"></i> Issue License
+                                </button>
+                            </div>
+                            <!-- Filters Box -->
+                            <div class="advanced-filters glass-card">
+                                <div class="filter-group">
+                                    <label class="font-sora">Product</label>
+                                    <select id="filter-license-product">
+                                        <option value="">All Products</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label class="font-sora">Status</label>
+                                    <select id="filter-license-status">
+                                        <option value="">All Statuses</option>
+                                        <option value="active">Active</option>
+                                        <option value="suspended">Suspended</option>
+                                        <option value="revoked">Revoked</option>
+                                        <option value="expired">Expired</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-container glass-card">
+                            <table class="data-table" id="licenses-table">
+                                <thead>
+                                    <tr>
+                                        <th class="font-sora">License Key</th>
+                                        <th class="font-sora">Product / Plan</th>
+                                        <th class="font-sora">Customer</th>
+                                        <th class="font-sora">Devices</th>
+                                        <th class="font-sora">Expires</th>
+                                        <th class="font-sora">Status</th>
+                                        <th class="font-sora">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Populated programmatically -->
+                                </tbody>
+                            </table>
+                            <div class="table-empty" id="licenses-table-empty">No licenses generated match search constraints.</div>
+                        </div>
+                    </div>
+
+                    <!-- Subview: Devices -->
+                    <div id="subview-devices" class="subview-pane">
+                        <div class="table-actions">
+                            <div class="search-box">
+                                <i data-lucide="search" class="search-icon"></i>
+                                <input type="text" id="search-devices-input" placeholder="Filter by UUID or license ID...">
+                            </div>
+                        </div>
+                        <div class="table-container glass-card">
+                            <table class="data-table" id="devices-table">
+                                <thead>
+                                    <tr>
+                                        <th class="font-sora">Device Hardware UUID</th>
+                                        <th class="font-sora">Associated License ID</th>
+                                        <th class="font-sora">Browser / OS Platform</th>
+                                        <th class="font-sora">Extension Version</th>
+                                        <th class="font-sora">Last Seen Heartbeat</th>
+                                        <th class="font-sora">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Populated programmatically -->
+                                </tbody>
+                            </table>
+                            <div class="table-empty" id="devices-table-empty">No active hardware nodes registered.</div>
+                        </div>
+                    </div>
+
+                    <!-- Subview: Admins -->
+                    <div id="subview-admins" class="subview-pane">
+                        <div class="table-actions">
+                            <div class="search-box">
+                                <i data-lucide="search" class="search-icon"></i>
+                                <input type="text" id="search-admins-input" placeholder="Search admin accounts...">
+                            </div>
+                            <button class="btn btn-primary font-sora btn-glow" id="btn-create-admin">
+                                <i data-lucide="plus"></i> Add Admin
+                            </button>
+                        </div>
+                        <div class="table-container glass-card">
+                            <table class="data-table" id="admins-table">
+                                <thead>
+                                    <tr>
+                                        <th class="font-sora">Username</th>
+                                        <th class="font-sora">Administrative Role</th>
+                                        <th class="font-sora">Created On</th>
+                                        <th class="font-sora">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Populated programmatically -->
+                                </tbody>
+                            </table>
+                            <div class="table-empty" id="admins-table-empty">No admin accounts found.</div>
+                        </div>
+                    </div>
+
+                    <!-- Subview: Analytics -->
+                    <div id="subview-analytics" class="subview-pane">
+                        <div class="analytics-dashboard-grid">
+                            <div class="glass-card grid-card scroll-reveal">
+                                <div class="card-header">
+                                    <h3 class="card-title font-sora">Verification Status Distribution</h3>
+                                </div>
+                                <div class="chart-container-centered">
+                                    <canvas id="chart-status-dist"></canvas>
+                                </div>
+                            </div>
+                            <div class="glass-card grid-card scroll-reveal">
+                                <div class="card-header">
+                                    <h3 class="card-title font-sora">Browser Engine Share</h3>
+                                </div>
+                                <div class="chart-container-centered">
+                                    <canvas id="chart-browser-dist"></canvas>
+                                </div>
+                            </div>
+                            <div class="glass-card grid-card col-span-2 scroll-reveal">
+                                <div class="card-header">
+                                    <h3 class="card-title font-sora">Telemetry Heartbeats Over Time</h3>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="chart-activations-trend"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Subview: Settings -->
+                    <div id="subview-settings" class="subview-pane">
+                        <div class="settings-grid">
+                            <!-- Change Password glass card -->
+                            <div class="glass-card settings-card">
+                                <div class="card-header">
+                                    <h3 class="card-title font-sora">Update Account Password</h3>
+                                    <span class="card-subtitle">Maintain cryptographic security standards</span>
+                                </div>
+                                <form id="settings-password-form" class="settings-form">
+                                    <div class="form-group">
+                                        <label for="settings-old-pass" class="font-sora">Current Password</label>
+                                        <input type="password" id="settings-old-pass" placeholder="••••••••" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="settings-new-pass" class="font-sora">New Password</label>
+                                        <input type="password" id="settings-new-pass" placeholder="At least 8 characters" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary font-sora btn-glow">Update Password</button>
+                                </form>
+                            </div>
+
+                            <!-- Profile metadata card -->
+                            <div class="glass-card settings-card">
+                                <div class="card-header">
+                                    <h3 class="card-title font-sora">Admin Profile Overview</h3>
+                                    <span class="card-subtitle">Details retrieved from `/api/v1/auth/me`</span>
+                                </div>
+                                <div class="profile-details-list">
+                                    <div class="detail-item">
+                                        <span class="detail-label font-sora">Admin ID:</span>
+                                        <span class="detail-value font-mono" id="settings-prof-id">...</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label font-sora">Username:</span>
+                                        <span class="detail-value" id="settings-prof-username">...</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label font-sora">Assigned Role:</span>
+                                        <span class="detail-value font-sora uppercase" id="settings-prof-role">...</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label font-sora">Created On:</span>
+                                        <span class="detail-value" id="settings-prof-created">...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 4. DIALOG MODALS OVERLAYS -->
+    <!-- ========================================== -->
+
+    <!-- Product Create/Edit Modal -->
+    <div id="modal-product" class="modal-overlay">
+        <div class="glass-card modal-content-card">
+            <div class="modal-header">
+                <h3 class="modal-title font-sora" id="product-modal-title">Add Product</h3>
+                <button class="modal-close" onclick="closeModal('modal-product')"><i data-lucide="x"></i></button>
+            </div>
+            <form id="product-form">
+                <input type="hidden" id="product-form-id">
+                <div class="form-group">
+                    <label for="product-name" class="font-sora">Product Name</label>
+                    <input type="text" id="product-name" placeholder="e.g. AdBlock Pro Plus" required>
+                </div>
+                <div class="form-group">
+                    <label for="product-slug" class="font-sora">Slug (URL Identifier)</label>
+                    <input type="text" id="product-slug" placeholder="e.g. adblock-pro-plus" required>
+                </div>
+                <div class="form-group">
+                    <label for="product-version" class="font-sora">Semantic Version</label>
+                    <input type="text" id="product-version" placeholder="1.0.0" pattern="^\d+\.\d+\.\d+$" required>
+                </div>
+                <div class="form-group">
+                    <label for="product-description" class="font-sora">Description</label>
+                    <textarea id="product-description" placeholder="A brief summary of the product capability" rows="3"></textarea>
+                </div>
+                <div class="form-group" id="product-status-group" style="display: none;">
+                    <label for="product-status" class="font-sora">Product Status</label>
+                    <select id="product-status">
+                        <option value="active">Active</option>
+                        <option value="beta">Beta</option>
+                        <option value="archived">Archived</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary font-sora btn-glow-cyan" onclick="closeModal('modal-product')">Cancel</button>
+                    <button type="submit" class="btn btn-primary font-sora btn-glow">Save Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Plan Create/Edit Modal -->
+    <div id="modal-plan" class="modal-overlay">
+        <div class="glass-card modal-content-card">
+            <div class="modal-header">
+                <h3 class="modal-title font-sora" id="plan-modal-title">Create Plan</h3>
+                <button class="modal-close" onclick="closeModal('modal-plan')"><i data-lucide="x"></i></button>
+            </div>
+            <form id="plan-form">
+                <input type="hidden" id="plan-form-id">
+                <div class="form-group">
+                    <label for="plan-name" class="font-sora">Plan Name</label>
+                    <input type="text" id="plan-name" placeholder="e.g. Professional Premium" required>
+                </div>
+                <div class="form-group">
+                    <label for="plan-duration" class="font-sora">Duration (Days)</label>
+                    <input type="number" id="plan-duration" min="1" placeholder="365" required>
+                </div>
+                <div class="form-group">
+                    <label for="plan-max-devices" class="font-sora">Max Devices Permitted</label>
+                    <input type="number" id="plan-max-devices" min="1" placeholder="3" required>
+                </div>
+                <div class="form-group">
+                    <label for="plan-price" class="font-sora">Price in USD ($)</label>
+                    <input type="number" id="plan-price" min="0" step="0.01" placeholder="29.99" required>
+                </div>
+                <div class="form-group" id="plan-status-group" style="display: none;">
+                    <label for="plan-status" class="font-sora">Status</label>
+                    <select id="plan-status">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="retired">Retired</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary font-sora btn-glow-cyan" onclick="closeModal('modal-plan')">Cancel</button>
+                    <button type="submit" class="btn btn-primary font-sora btn-glow">Save Plan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Customer Create/Edit Modal -->
+    <div id="modal-customer" class="modal-overlay">
+        <div class="glass-card modal-content-card">
+            <div class="modal-header">
+                <h3 class="modal-title font-sora" id="customer-modal-title">Add Customer</h3>
+                <button class="modal-close" onclick="closeModal('modal-customer')"><i data-lucide="x"></i></button>
+            </div>
+            <form id="customer-form">
+                <input type="hidden" id="customer-form-id">
+                <div class="form-group">
+                    <label for="customer-name" class="font-sora">Full Name</label>
+                    <input type="text" id="customer-name" placeholder="John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label for="customer-email" class="font-sora">Email Address</label>
+                    <input type="email" id="customer-email" placeholder="john.doe@gmail.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="customer-phone" class="font-sora">Phone Number (Optional)</label>
+                    <input type="text" id="customer-phone" placeholder="e.g. +14155550192">
+                </div>
+                <div class="form-group">
+                    <label for="customer-notes" class="font-sora">Notes (Optional)</label>
+                    <textarea id="customer-notes" placeholder="Enterprise account constraints, comments" rows="3"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary font-sora btn-glow-cyan" onclick="closeModal('modal-customer')">Cancel</button>
+                    <button type="submit" class="btn btn-primary font-sora btn-glow">Save Customer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- License Issue Modal -->
+    <div id="modal-license" class="modal-overlay">
+        <div class="glass-card modal-content-card">
+            <div class="modal-header">
+                <h3 class="modal-title font-sora">Issue New License Key</h3>
+                <button class="modal-close" onclick="closeModal('modal-license')"><i data-lucide="x"></i></button>
+            </div>
+            <form id="license-form">
+                <div class="form-group">
+                    <label for="license-product-select" class="font-sora">Select Product</label>
+                    <select id="license-product-select" required>
+                        <option value="">Choose a product...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="license-customer-select" class="font-sora">Select Customer</label>
+                    <select id="license-customer-select" required>
+                        <option value="">Choose a customer...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="license-plan-select" class="font-sora">Select Plan</label>
+                    <select id="license-plan-select" required>
+                        <option value="">Choose a plan...</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary font-sora btn-glow-cyan" onclick="closeModal('modal-license')">Cancel</button>
+                    <button type="submit" class="btn btn-primary font-sora btn-glow">Generate License</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- License Action Modal: Extend/Suspend/Revoke -->
+    <div id="modal-license-action" class="modal-overlay">
+        <div class="glass-card modal-content-card">
+            <div class="modal-header">
+                <h3 class="modal-title font-sora" id="license-action-title">License Operation</h3>
+                <button class="modal-close" onclick="closeModal('modal-license-action')"><i data-lucide="x"></i></button>
+            </div>
+            <form id="license-action-form">
+                <input type="hidden" id="license-action-key">
+                <input type="hidden" id="license-action-type">
+                
+                <div class="form-group" id="license-action-plan-group" style="display: none;">
+                    <label for="license-action-plan" class="font-sora">Extend Expiry using Plan</label>
+                    <select id="license-action-plan">
+                        <option value="">Choose extension pricing...</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="license-action-reason-group" style="display: none;">
+                    <label for="license-action-reason" class="font-sora">Reason for Operation</label>
+                    <textarea id="license-action-reason" placeholder="Violating terms of service, payment dispute..." rows="3"></textarea>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary font-sora btn-glow-cyan" onclick="closeModal('modal-license-action')">Cancel</button>
+                    <button type="submit" class="btn btn-primary font-sora btn-glow" id="license-action-submit-btn">Confirm Action</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Create Modal -->
+    <div id="modal-admin" class="modal-overlay">
+        <div class="glass-card modal-content-card">
+            <div class="modal-header">
+                <h3 class="modal-title font-sora" id="admin-modal-title">Create Admin User</h3>
+                <button class="modal-close" onclick="closeModal('modal-admin')"><i data-lucide="x"></i></button>
+            </div>
+            <form id="admin-form">
+                <input type="hidden" id="admin-form-id">
+                <div class="form-group">
+                    <label for="admin-username" class="font-sora">Username</label>
+                    <input type="text" id="admin-username" placeholder="e.g. support_staff" pattern="^[a-zA-Z0-9_.-]+$" required>
+                </div>
+                <div class="form-group" id="admin-password-group">
+                    <label for="admin-password" class="font-sora">Initial Password</label>
+                    <input type="password" id="admin-password" placeholder="Min 8 characters" required>
+                </div>
+                <div class="form-group">
+                    <label for="admin-role" class="font-sora">Security Role</label>
+                    <select id="admin-role" required>
+                        <option value="support">Support (Read Only/Basic Actions)</option>
+                        <option value="admin">Admin (Read/Write Product/Plan)</option>
+                        <option value="owner">Owner (Full Admin Access & RBAC Controls)</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary font-sora btn-glow-cyan" onclick="closeModal('modal-admin')">Cancel</button>
+                    <button type="submit" class="btn btn-primary font-sora btn-glow">Save Admin</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reset Admin Password Modal (Owner Only) -->
+    <div id="modal-admin-reset" class="modal-overlay">
+        <div class="glass-card modal-content-card">
+            <div class="modal-header">
+                <h3 class="modal-title font-sora">Reset Admin Password</h3>
+                <button class="modal-close" onclick="closeModal('modal-admin-reset')"><i data-lucide="x"></i></button>
+            </div>
+            <form id="admin-reset-form">
+                <input type="hidden" id="admin-reset-id">
+                <div class="form-group">
+                    <label class="font-sora">Target Admin Username</label>
+                    <input type="text" id="admin-reset-username" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="admin-reset-password" class="font-sora">New Temporary Password</label>
+                    <input type="password" id="admin-reset-password" placeholder="At least 8 characters" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary font-sora btn-glow-cyan" onclick="closeModal('modal-admin-reset')">Cancel</button>
+                    <button type="submit" class="btn btn-primary font-sora btn-glow">Reset Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Detailed Customer License Overview Overlay -->
+    <div id="modal-customer-details" class="modal-overlay">
+        <div class="glass-card modal-content-card modal-large">
+            <div class="modal-header">
+                <h3 class="modal-title font-sora" id="customer-details-title">Customer Profile</h3>
+                <button class="modal-close" onclick="closeModal('modal-customer-details')"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body-content">
+                <div class="profile-info-header">
+                    <div class="profile-meta-row">
+                        <span class="meta-label">Email:</span>
+                        <span class="meta-val" id="cust-det-email"></span>
+                    </div>
+                    <div class="profile-meta-row">
+                        <span class="meta-label">Phone:</span>
+                        <span class="meta-val" id="cust-det-phone"></span>
+                    </div>
+                    <div class="profile-meta-row">
+                        <span class="meta-label">Created:</span>
+                        <span class="meta-val" id="cust-det-created"></span>
+                    </div>
+                </div>
+                <div class="customer-notes-panel" id="cust-det-notes-wrapper" style="display: none;">
+                    <h4 class="font-sora">Administrative Notes</h4>
+                    <p id="cust-det-notes"></p>
+                </div>
+                
+                <h4 class="font-sora table-section-header">Associated Product Licenses</h4>
+                <div class="table-container small-table">
+                    <table class="data-table" id="customer-licenses-table">
+                        <thead>
+                            <tr>
+                                <th>License Key</th>
+                                <th>Product Name</th>
+                                <th>Devices</th>
+                                <th>Expires At</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Populated programmatically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Redesigned Detailed Security License Console -->
+    <div id="modal-license-details" class="modal-overlay">
+        <div class="glass-card modal-content-card modal-large">
+            <div class="modal-header">
+                <div style="display:flex; align-items:center; gap: 0.75rem;">
+                    <i data-lucide="shield-check" class="text-cyan glow-icon" style="width:24px; height:24px;"></i>
+                    <h3 class="modal-title font-sora" id="license-details-title">License Security Console</h3>
+                </div>
+                <button class="modal-close" onclick="closeModal('modal-license-details')"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body-content">
+                <div class="console-header-grid">
+                    <!-- Mini Holographic Card Visual -->
+                    <div class="mini-hologram-card font-mono">
+                        <div class="card-chip"></div>
+                        <div class="card-lic-key" id="lic-console-card-key">LOUD-XXXX-XXXX-XXXX</div>
+                        <div class="card-footer-row">
+                            <span>SECURE CLIENT TELEMETRY</span>
+                            <span id="lic-console-card-status">ACTIVE</span>
+                        </div>
+                    </div>
+                    <!-- Health Widget -->
+                    <div class="glass-card console-widget">
+                        <span class="widget-label font-sora">Security Health Status</span>
+                        <div class="security-health-indicator">
+                            <div class="health-ring-wrapper">
+                                <div class="health-pulse-dot bg-cyan" id="lic-health-dot"></div>
+                            </div>
+                            <div>
+                                <div style="font-weight:600;" id="lic-console-health-text">SECURE</div>
+                                <div style="font-size:0.75rem; color:var(--text-secondary);">Device limits verified</div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Seat Gauge Widget -->
+                    <div class="glass-card console-widget">
+                        <span class="widget-label font-sora">Seats Activated</span>
+                        <div class="seat-gauge-wrapper">
+                            <div class="seat-gauge-bar">
+                                <div class="seat-gauge-fill" id="lic-console-seat-fill" style="width: 0%;"></div>
+                            </div>
+                            <div class="seat-gauge-labels font-mono">
+                                <span id="lic-console-seat-text">0 / 0 devices</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="license-info-header" style="margin-top: 1.5rem;">
+                    <div class="info-block">
+                        <span class="info-lbl font-sora">Product / Plan</span>
+                        <span class="info-val" id="lic-det-product">...</span>
+                    </div>
+                    <div class="info-block">
+                        <span class="info-lbl font-sora">Client Owner</span>
+                        <span class="info-val" id="lic-det-customer">...</span>
+                    </div>
+                    <div class="info-block">
+                        <span class="info-lbl font-sora">Expiration Date</span>
+                        <span class="info-val" id="lic-det-expires">...</span>
+                    </div>
+                </div>
+
+                <div class="license-detail-tabs">
+                    <h4 class="font-sora section-title">Bound Devices</h4>
+                    <div class="table-container small-table">
+                        <table class="data-table" id="lic-det-devices-table">
+                            <thead>
+                                <tr>
+                                    <th>Hardware UUID</th>
+                                    <th>Browser / OS</th>
+                                    <th>Extension Version</th>
+                                    <th>Last Seen</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Populated programmatically -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h4 class="font-sora section-title" style="margin-top: 2rem;">Activity Logs (Telemetry Stream)</h4>
+                    <div class="activity-log-stream large-stream" id="lic-det-logs-stream">
+                        <!-- Populated programmatically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <!-- Third-party library CDNs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icon parser -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide/dist/umd/lucide.min.js"></script>
+    
+    <!-- Application Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/scene3d.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
