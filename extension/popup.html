@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Louders Official</title>
+    <link rel="icon" type="image/png" href="icons/icon32.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <canvas id="stars"></canvas>
+    
+    <div class="chassis-outer">
+        <div class="container">
+            <!-- Hardware Accent Rivets -->
+            <div class="chassis-bolt bolt-tl"></div>
+            <div class="chassis-bolt bolt-tr"></div>
+            <div class="chassis-bolt bolt-bl"></div>
+            <div class="chassis-bolt bolt-br"></div>
+
+            <header>
+                <div class="header-top-pill">
+                    <span class="badge-dot"></span>
+                    <span class="pill-text">DSP ENGINE</span>
+                    <span class="pill-sep">•</span>
+                    <span class="pill-author">made with punjuu</span>
+                </div>
+
+                <div class="brand-header-row">
+                    <img src="icons/icon48.png" alt="Louders Logo" class="brand-logo-img">
+                    <div class="title-wrap">
+                        <h1 class="brand-title">LOUDERS OFFICIAL</h1>
+                        <div class="title-reflection" aria-hidden="true">LOUDERS OFFICIAL</div>
+                    </div>
+                </div>
+
+                <div class="community-link-wrap">
+                    <a href="https://discord.gg/ZPP7D6BmC" target="_blank" rel="noopener noreferrer" class="discord-badge" title="Join Discord">
+                        <svg class="discord-icon" viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+                            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                        </svg>
+                        <span>discord.gg/ZPP7D6BmC</span>
+                    </a>
+
+                    <button type="button" class="license-status-pill" id="licenseStatusPill" title="Manage License">
+                        <span class="license-led led-amber" id="licenseLed"></span>
+                        <span class="license-pill-text" id="licensePillText">INITIALIZING</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="presets-container">
+                <div class="presets-label-bar">
+                    <span>MACRO MODES</span>
+                    <span class="preset-hint">TACTILE PRESETS</span>
+                </div>
+                <div class="presets">
+                    <button class="preset-btn" data-preset="radio">
+                        <span class="btn-top">
+                            <span class="btn-led led-blue"></span>
+                            <span class="btn-text">SOUND 1</span>
+                        </span>
+                        <span class="btn-depth"></span>
+                    </button>
+                    <button class="preset-btn" data-preset="cave">
+                        <span class="btn-top">
+                            <span class="btn-led led-purple"></span>
+                            <span class="btn-text">SOUND 2</span>
+                        </span>
+                        <span class="btn-depth"></span>
+                    </button>
+                    <button class="preset-btn" data-preset="mega">
+                        <span class="btn-top">
+                            <span class="btn-led led-magenta"></span>
+                            <span class="btn-text">SOUND 3</span>
+                        </span>
+                        <span class="btn-depth"></span>
+                    </button>
+                    <button class="preset-btn" data-preset="nuke">
+                        <span class="btn-top">
+                            <span class="btn-led led-amber"></span>
+                            <span class="btn-text">SOUND 4</span>
+                        </span>
+                        <span class="btn-depth"></span>
+                    </button>
+                    <button class="preset-btn preset-reset" data-preset="reset">
+                        <span class="btn-top">
+                            <span class="btn-led led-red"></span>
+                            <span class="btn-text">RESET</span>
+                        </span>
+                        <span class="btn-depth"></span>
+                    </button>
+                </div>
+
+            <div class="tabs-rail">
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="encoder">
+                        <span class="tab-glow"></span>
+                        <span class="tab-label">Encoder</span>
+                    </button>
+                    <button class="tab-btn" data-tab="decoder">
+                        <span class="tab-glow"></span>
+                        <span class="tab-label">Decoder</span>
+                    </button>
+                    <button class="tab-btn" data-tab="counters">
+                        <span class="tab-glow"></span>
+                        <span class="tab-label">VST Plugins</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="content-scrollable">
+                <div class="tab-content active" id="encoder">
+                    <div class="control-card">
+                        <div class="card-head">
+                            <label for="gain" class="ctrl-label">
+                                <span class="ctrl-icon-dot"></span>
+                                VOLUME
+                            </label>
+                            <div class="lcd-badge" id="gainVal">1dB</div>
+                        </div>
+                        <div class="slider-groove">
+                            <input type="range" id="gain" min="0" max="100" step="1" value="1">
+                        </div>
+                    </div>
+
+                    <div class="control-card">
+                        <div class="card-head">
+                            <label for="clearness" class="ctrl-label">
+                                <span class="ctrl-icon-dot"></span>
+                                CLARITY
+                            </label>
+                            <div class="lcd-badge" id="clearnessVal">0dB</div>
+                        </div>
+                        <div class="slider-groove">
+                            <input type="range" id="clearness" min="-10" max="100" step="1" value="0">
+                        </div>
+                    </div>
+
+                    <div class="control-card">
+                        <div class="card-head">
+                            <label for="compressor" class="ctrl-label">
+                                <span class="ctrl-icon-dot"></span>
+                                COMPRESSOR
+                            </label>
+                            <div class="lcd-badge" id="compressorVal">0%</div>
+                        </div>
+                        <div class="slider-groove">
+                            <input type="range" id="compressor" min="0" max="100" step="1" value="0">
+                        </div>
+                    </div>
+
+                    <div class="control-card">
+                        <div class="card-head">
+                            <label for="distortion" class="ctrl-label">
+                                <span class="ctrl-icon-dot"></span>
+                                DISTORTION
+                            </label>
+                            <div class="lcd-badge" id="distortionVal">0%</div>
+                        </div>
+                        <div class="slider-groove">
+                            <input type="range" id="distortion" min="0" max="100" step="1" value="0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="decoder">
+                    <div class="control-card">
+                        <div class="card-head">
+                            <label for="bass" class="ctrl-label">
+                                <span class="ctrl-icon-dot"></span>
+                                BASS BOOST
+                            </label>
+                            <div class="lcd-badge" id="bassVal">0dB</div>
+                        </div>
+                        <div class="slider-groove">
+                            <input type="range" id="bass" min="-10" max="30" step="1" value="0">
+                        </div>
+                    </div>
+
+                    <div class="control-card">
+                        <div class="card-head">
+                            <label for="pan" class="ctrl-label">
+                                <span class="ctrl-icon-dot"></span>
+                                PAN SYSTEM
+                            </label>
+                            <div class="lcd-badge" id="panVal">Center</div>
+                        </div>
+                        <div class="slider-groove">
+                            <input type="range" id="pan" min="-1" max="1" step="0.05" value="0">
+                        </div>
+                        <div class="pan-labels">
+                            <span>L 100%</span>
+                            <span class="pan-center-mark">CENTER</span>
+                            <span>R 100%</span>
+                        </div>
+                    </div>
+
+                    <div class="control-card toggle-card">
+                        <div class="toggle-meta">
+                            <span class="ctrl-label">
+                                <span class="ctrl-icon-dot"></span>
+                                REVERB EFFECT
+                            </span>
+                            <span class="toggle-desc">Atmospheric Room Reflex</span>
+                        </div>
+                        <label class="switch" for="reverb">
+                            <input type="checkbox" id="reverb">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+
+                    <div class="control-card">
+                        <div class="card-head">
+                            <label for="tremolo" class="ctrl-label">
+                                <span class="ctrl-icon-dot"></span>
+                                TREMOLO
+                            </label>
+                            <div class="lcd-badge" id="tremoloVal">0%</div>
+                        </div>
+                        <div class="slider-groove">
+                            <input type="range" id="tremolo" min="0" max="100" step="1" value="0">
+                        </div>
+                    </div>
+
+                    <div class="control-card">
+                        <div class="card-head">
+                            <label for="flanger" class="ctrl-label">
+                                <span class="ctrl-icon-dot"></span>
+                                FLANGER
+                            </label>
+                            <div class="lcd-badge" id="flangerVal">0%</div>
+                        </div>
+                        <div class="slider-groove">
+                            <input type="range" id="flanger" min="0" max="100" step="1" value="0">
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <div class="tab-content" id="counters">
+                    <div class="vst-sync-bar">
+                        <button class="vst-btn" id="sync-vst-btn">
+                            <span class="vst-btn-glow"></span>
+                            <span class="vst-btn-text">SCAN PLUGINS</span>
+                        </button>
+                        <span class="vst-status-text" id="vst-count-status">0 plugins</span>
+                    </div>
+                    <div id="vst-list"></div>
+                </div>
+            </div>
+
+            <!-- DSP Lock Overlay for unlicensed state -->
+            <div class="dsp-lock-overlay" id="dspLockOverlay" style="display: none;">
+                <div class="dsp-lock-card">
+                    <div class="lock-icon-wrap">
+                        <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                    </div>
+                    <div class="lock-title">DSP ENGINE LOCKED</div>
+                    <p class="lock-subtitle">Active license required to enable audio processing & VST plugins.</p>
+                    <button type="button" class="lock-activate-btn" id="lockActivateBtn">
+                        <span class="btn-top">
+                            <span class="btn-led led-cyan"></span>
+                            <span class="btn-text">ACTIVATE LICENSE</span>
+                        </span>
+                        <span class="btn-depth"></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- License Management / Activation Modal -->
+            <div class="license-modal-backdrop" id="licenseModal" style="display: none;">
+                <div class="license-modal-card">
+                    <div class="chassis-bolt bolt-tl"></div>
+                    <div class="chassis-bolt bolt-tr"></div>
+                    <div class="chassis-bolt bolt-bl"></div>
+                    <div class="chassis-bolt bolt-br"></div>
+
+                    <div class="modal-header">
+                        <div class="modal-title-wrap">
+                            <span class="modal-tag">AUTHENTICATION</span>
+                            <h2 class="modal-title" id="modalTitle">LICENSE ACTIVATION</h2>
+                        </div>
+                        <button type="button" class="modal-close-btn" id="modalCloseBtn" title="Close">✕</button>
+                    </div>
+
+                    <div class="modal-body">
+                        <!-- Alert Box for feedback -->
+                        <div class="lic-alert-box" id="licAlertBox" style="display: none;"></div>
+
+                        <!-- ACTIVATION VIEW -->
+                        <div class="modal-view" id="licActivateView">
+                            <p class="lic-desc">Enter your customer email and license key to link this browser to your subscription.</p>
+
+                            <div class="lic-field-group">
+                                <label for="licEmail" class="lic-label">CUSTOMER EMAIL</label>
+                                <div class="lic-input-wrap">
+                                    <input type="email" id="licEmail" class="lic-input" placeholder="e.g. hanzoobangladesh@gmail.com" autocomplete="email" spellcheck="false">
+                                </div>
+                            </div>
+
+                            <div class="lic-field-group">
+                                <label for="licKey" class="lic-label">LICENSE KEY</label>
+                                <div class="lic-input-wrap">
+                                    <input type="text" id="licKey" class="lic-input lic-key-input" placeholder="LP-26-XXXX-XXXX-XXXX" maxlength="32" autocomplete="off" spellcheck="false">
+                                </div>
+                            </div>
+
+                            <!-- Collapsible Connection Settings -->
+                            <details class="lic-advanced-details">
+                                <summary class="lic-advanced-summary">Server & API Settings</summary>
+                                <div class="lic-advanced-content">
+                                    <div class="lic-field-group">
+                                        <label for="licServerUrl" class="lic-label">SERVER URL</label>
+                                        <input type="text" id="licServerUrl" class="lic-input lic-input-sm" value="https://louders-official.onrender.com" spellcheck="false">
+                                    </div>
+                                    <div class="lic-field-group">
+                                        <label for="licProductKey" class="lic-label">PRODUCT API KEY</label>
+                                        <input type="text" id="licProductKey" class="lic-input lic-input-sm" value="lp_AqzVY9OZc1ZyVSYgfc-J6XLxff9lejdLtzClROBrUgU" spellcheck="false">
+                                    </div>
+                                </div>
+                            </details>
+
+                            <button type="button" class="lic-action-btn" id="licSubmitActivateBtn">
+                                <span class="btn-top">
+                                    <span class="btn-led led-cyan"></span>
+                                    <span class="btn-text" id="licSubmitBtnText">ACTIVATE DEVICE</span>
+                                </span>
+                                <span class="btn-depth"></span>
+                            </button>
+                        </div>
+
+                        <!-- ACTIVE LICENSE VIEW -->
+                        <div class="modal-view" id="licActiveView" style="display: none;">
+                            <div class="lic-active-badge-row">
+                                <span class="lic-badge-tag tag-pro">PRO ACTIVE</span>
+                                <span class="lic-expiry-tag" id="licExpiryTag">Valid</span>
+                            </div>
+
+                            <div class="lic-info-table">
+                                <div class="lic-info-row">
+                                    <span class="lic-info-label">LICENSE KEY</span>
+                                    <span class="lic-info-val mono-font" id="licActiveKeyDisplay">••••-••••-••••</span>
+                                </div>
+                                <div class="lic-info-row">
+                                    <span class="lic-info-label">OWNER EMAIL</span>
+                                    <span class="lic-info-val" id="licActiveEmailDisplay">-</span>
+                                </div>
+                                <div class="lic-info-row">
+                                    <span class="lic-info-label">STATUS</span>
+                                    <span class="lic-info-val highlight-val" id="licActiveStatusDisplay">Active</span>
+                                </div>
+                                <div class="lic-info-row">
+                                    <span class="lic-info-label">EXPIRES</span>
+                                    <span class="lic-info-val" id="licActiveExpiresDisplay">-</span>
+                                </div>
+                                <div class="lic-info-row">
+                                    <span class="lic-info-label">DEVICE UUID</span>
+                                    <span class="lic-info-val mono-font" id="licActiveDeviceDisplay">-</span>
+                                </div>
+                            </div>
+
+                            <div class="lic-button-grid">
+                                <button type="button" class="lic-sub-btn" id="licVerifyBtn">
+                                    <span>SYNC / VERIFY</span>
+                                </button>
+                                <button type="button" class="lic-sub-btn btn-danger" id="licDeactivateBtn">
+                                    <span>DEACTIVATE</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <footer>
+                <div class="status-wrap">
+                    <span class="status-indicator"></span>
+                    <span class="status-text" id="footerStatusText">ACTIVE ENGINE</span>
+                </div>
+                <div class="credit-wrap">
+                    <span class="credit-shine">MADE WITH PUNJUU</span>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <script src="licenseManager.js"></script>
+    <script src="popup.js"></script>
+</body>
+</html>
