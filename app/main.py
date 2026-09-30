@@ -29,7 +29,7 @@ from app.exceptions import (
     ResourceNotFoundError,
     ValidationException,
 )
-from app.models import AdminUser
+from app.models import AdminUser, Product
 from app.routers import (
     admin,
     auth,
@@ -90,6 +90,37 @@ def _ensure_initial_admin() -> None:
         db.close()
 
 
+def _ensure_default_product() -> None:
+    """Ensure the default product (LOUD Premium) exists with its designated API key."""
+    db = SessionLocal()
+    try:
+        prod = db.query(Product).filter(Product.id == 1).first()
+        default_key = "lp_AqzVY9OZc1ZyVSYgfc-J6XLxff9lejdLtzClROBrUgU"
+        if prod:
+            if prod.api_key != default_key:
+                prod.api_key = default_key
+                prod.status = "active"
+                db.commit()
+                logger.info("Default product API key reset to: %s", default_key)
+        else:
+            new_prod = Product(
+                id=1,
+                name="LOUD Premium",
+                slug="loud-premium",
+                version="1.0.0",
+                api_key=default_key,
+                status="active"
+            )
+            db.add(new_prod)
+            db.commit()
+            logger.info("Created default product: LOUD Premium with API key: %s", default_key)
+    except SQLAlchemyError as exc:
+        db.rollback()
+        logger.exception("Failed to ensure default product: %s", exc)
+    finally:
+        db.close()
+
+
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.VERSION,
@@ -106,9 +137,10 @@ app = FastAPI(
 
 @app.on_event("startup")
 async def startup_event():
-    """Validate database connectivity and seed the initial admin during startup."""
+    """Validate database connectivity, seed initial admin, and ensure default product."""
     _validate_database_ready()
     _ensure_initial_admin()
+    _ensure_default_product()
     logger.info("LOUD License Server started successfully.")
 
 
