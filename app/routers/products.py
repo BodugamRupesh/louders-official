@@ -1,4 +1,4 @@
-﻿"""
+"""
 Products Router for LOUD Platform Licensing System.
 """
 
@@ -26,7 +26,7 @@ router = APIRouter(
 
 def _serialize_product(
     product: Product,
-    include_api_key: bool = False,
+    include_api_key: bool = True,
 ) -> dict:
     payload = ProductResponse.model_validate(
         product,
