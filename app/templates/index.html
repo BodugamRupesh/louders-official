@@ -1180,6 +1180,33 @@
         </div>
     </div>
 
+    <!-- Product API Key Reveal Modal -->
+    <div id="modal-view-product-key" class="modal-overlay">
+        <div class="glass-card modal-content-card" style="max-width: 560px; width: 92%;">
+            <div class="modal-header">
+                <div style="display:flex; align-items:center; gap: 0.75rem;">
+                    <i data-lucide="key" class="text-cyan glow-icon" style="width:24px; height:24px;"></i>
+                    <h3 class="modal-title font-sora" id="view-key-modal-title">Product API Key</h3>
+                </div>
+                <button class="modal-close" onclick="closeModal('modal-view-product-key')"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body-content" style="padding: 1.25rem 0 0.5rem 0;">
+                <p style="color:var(--text-secondary); font-size:0.875rem; margin-bottom: 1rem; line-height: 1.5;">
+                    This secret API Key is required by your Chrome Extension client (<code class="font-mono text-cyan" style="font-size:0.8rem;">licenseManager.js</code>) and license generator to communicate securely with this product.
+                </p>
+                <div style="background: rgba(0, 0, 0, 0.45); border: 1px solid rgba(0, 255, 200, 0.3); border-radius: 8px; padding: 12px 14px; margin-bottom: 1.25rem; display:flex; align-items:center;">
+                    <input type="text" id="view-key-modal-input" readonly class="font-mono text-cyan" style="width:100%; background:transparent; border:none; outline:none; font-size: 0.95rem; font-weight:600; letter-spacing: 0.5px; user-select: all;" value="" onclick="this.select()">
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap: 0.75rem;">
+                    <button class="btn btn-secondary font-sora" onclick="closeModal('modal-view-product-key')">Close</button>
+                    <button class="btn btn-primary font-sora btn-glow" id="view-key-modal-copy-btn" onclick="copyProductKeyFromModal()" style="display: inline-flex; align-items: center; gap: 6px;">
+                        <i data-lucide="copy" style="width:14px; height:14px;"></i> Copy API Key
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <!-- Third-party library CDNs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>

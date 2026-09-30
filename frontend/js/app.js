@@ -485,12 +485,15 @@ const LOUDApp = (() => {
                         <td class="font-mono">${escapeHTML(p.slug)}</td>
                         <td class="font-mono">${escapeHTML(p.version)}</td>
                         <td>
-                            <div class="copy-key-wrapper">
-                                <span class="font-mono text-cyan key-text" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHTML(apiKeyDisp)}</span>
-                                <button class="btn-action-icon" onclick="copyText('${escapeHTML(p.api_key || '')}')" title="Copy Key" ${!hasKey ? 'disabled' : ''}>
-                                    <i data-lucide="copy" style="width:14px; height:14px;"></i>
+                            <div class="copy-key-wrapper" style="display:flex; align-items:center; gap:6px;">
+                                <span class="font-mono text-cyan key-text" style="max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; user-select: all; text-decoration: underline dotted;" title="Click to view full key" onclick="viewProductKey('${escapeHTML(p.name)}', '${escapeHTML(p.api_key || '')}')">${escapeHTML(apiKeyDisp)}</span>
+                                <button class="btn btn-secondary btn-sm" onclick="viewProductKey('${escapeHTML(p.name)}', '${escapeHTML(p.api_key || '')}')" title="View Full Key" ${!hasKey ? 'disabled' : ''} style="padding: 0.22rem 0.55rem; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 4px; border: 1px solid rgba(0,255,200,0.3);">
+                                    <i data-lucide="eye" style="width:13px; height:13px;"></i> View
                                 </button>
-                                <button class="btn btn-secondary btn-sm" onclick="regenerateProductKey(${p.id})" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">
+                                <button class="btn btn-primary btn-sm" onclick="copyText('${escapeHTML(p.api_key || '')}')" title="Copy Full API Key" ${!hasKey ? 'disabled' : ''} style="padding: 0.22rem 0.6rem; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 4px; font-weight:600;">
+                                    <i data-lucide="copy" style="width:13px; height:13px;"></i> Copy
+                                </button>
+                                <button class="btn btn-secondary btn-sm" onclick="regenerateProductKey(${p.id})" style="padding: 0.22rem 0.5rem; font-size: 0.75rem;">
                                     ${hasKey ? 'Regen' : 'Generate'}
                                 </button>
                             </div>
@@ -513,6 +516,7 @@ const LOUDApp = (() => {
                     `;
                     tbody.appendChild(tr);
                 });
+                if (window.lucide) lucide.createIcons();
             }
         } finally {
             toggleLoader(false);
@@ -554,10 +558,17 @@ const LOUDApp = (() => {
     };
 
     window.regenerateProductKey = async function(id) {
+        if (!confirm('Are you sure you want to regenerate this Product API Key? Any client or extension using the current key will need to be updated with the new one.')) {
+            return;
+        }
         try {
             const res = await LOUDAPI.products.regenerateApiKey(id);
-            showToast('Product API key updated.');
-            renderProductsPane();
+            const newKey = res.data?.api_key;
+            showToast('Product API key regenerated.');
+            await renderProductsPane();
+            if (newKey) {
+                viewProductKey(`Product #${id}`, newKey);
+            }
         } catch(e) {
             showToast(e.message, 'error');
         }
@@ -1872,12 +1883,64 @@ const LOUDApp = (() => {
     }
 
     window.copyText = function(text) {
-        if (!text) return;
-        navigator.clipboard.writeText(text).then(() => {
-            showToast('Copied to clipboard.');
-        }).catch(err => {
-            showToast('Failed to copy.', 'error');
-        });
+        if (!text) {
+            showToast('No key to copy.', 'warning');
+            return;
+        }
+        function fallbackCopy(str) {
+            const ta = document.createElement('textarea');
+            ta.value = str;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            try {
+                document.execCommand('copy');
+                showToast('Key copied to clipboard!');
+            } catch (e) {
+                showToast('Failed to copy key.', 'error');
+            }
+            document.body.removeChild(ta);
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Key copied to clipboard!');
+            }).catch(() => {
+                fallbackCopy(text);
+            });
+        } else {
+            fallbackCopy(text);
+        }
+    };
+
+    window.viewProductKey = function(name, key) {
+        if (!key) {
+            showToast('No API key generated for this product.', 'warning');
+            return;
+        }
+        const modal = document.getElementById('modal-view-product-key');
+        if (!modal) {
+            window.prompt(`Product API Key for ${name} (Ctrl+C to copy):`, key);
+            return;
+        }
+        document.getElementById('view-key-modal-title').textContent = `${name} - API Key`;
+        const input = document.getElementById('view-key-modal-input');
+        input.value = key;
+        openModal('modal-view-product-key');
+        if (window.lucide) lucide.createIcons();
+        setTimeout(() => {
+            input.focus();
+            input.select();
+        }, 80);
+    };
+
+    window.copyProductKeyFromModal = function() {
+        const input = document.getElementById('view-key-modal-input');
+        if (input && input.value) {
+            copyText(input.value);
+        }
     };
 
     // ==========================================
