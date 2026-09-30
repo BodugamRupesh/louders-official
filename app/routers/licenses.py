@@ -285,6 +285,7 @@ async def reset_device(
     result = LicenseService.reset_device(
         db,
         license_key=reset_data.license_key,
+        device_uuid=reset_data.device_uuid,
     )
     return success_response(
         "Device reset successfully.",

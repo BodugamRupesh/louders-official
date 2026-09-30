@@ -853,58 +853,85 @@ class LicenseService:
     def reset_device(
         db: Session,
         license_key: str,
-        device_uuid: str,
-        ip_address: str | None = None
-    ) -> bool:
+        device_uuid: str | None = None,
+        ip_address: str | None = None,
+    ) -> dict:
         """
-        Remove a device from a license.
-        
+        Reset device(s) for a license.
+        If device_uuid is provided, resets only that specific device.
+        If device_uuid is None, resets ALL bound devices for this license.
+
         Args:
             db: SQLAlchemy database session.
             license_key: License key.
-            device_uuid: Device UUID to remove.
+            device_uuid: Optional device UUID to remove. If None, removes all bound devices.
             ip_address: Optional IP address for logging.
-            
+
         Returns:
-            True if device reset successfully.
-            
+            Dictionary with reset details.
+
         Raises:
             InvalidLicenseKeyFormatError: If key format is invalid.
             LicenseNotFoundError: If license doesn't exist.
-            DeviceNotFoundError: If device not registered.
+            DeviceNotFoundError: If specific device_uuid is provided but not found.
+            DatabaseError: If database operation fails.
         """
         try:
             license_obj = LicenseService.get_license_by_key(db, license_key)
-            
-            device = db.query(Device).filter(
+
+            if device_uuid:
+                device = db.query(Device).filter(
+                    Device.license_id == license_obj.id,
+                    Device.device_uuid == device_uuid,
+                ).first()
+
+                if not device:
+                    raise DeviceNotFoundError(
+                        f"Device '{device_uuid}' not found for license '{license_key}'"
+                    )
+
+                db.delete(device)
+                devices_removed = 1
+                action_desc = f"device_reset ({device_uuid})"
+            else:
+                devices = db.query(Device).filter(
+                    Device.license_id == license_obj.id,
+                ).all()
+                devices_removed = len(devices)
+                for d in devices:
+                    db.delete(d)
+                action_desc = f"devices_reset_all ({devices_removed} devices removed)"
+
+            db.flush()
+            remaining_count = db.query(Device).filter(
                 Device.license_id == license_obj.id,
-                Device.device_uuid == device_uuid
-            ).first()
-            
-            if not device:
-                raise DeviceNotFoundError(
-                    f"Device '{device_uuid}' not found for license '{license_key}'"
-                )
-            
-            db.delete(device)
-            db.commit()
-            
+            ).count()
+            license_obj.activated_device_count = remaining_count
+
             # Log activity
             LicenseService._create_activity_log(
                 db,
                 license_obj.id,
-                action="device_reset",
+                action=action_desc,
                 ip_address=ip_address,
-                browser=None
+                browser=None,
             )
-            
-            return True
-            
+
+            db.commit()
+            db.refresh(license_obj)
+
+            return {
+                "license_key": license_key,
+                "license_id": license_obj.id,
+                "devices_removed": devices_removed,
+                "activated_device_count": remaining_count,
+            }
+
         except (LicenseNotFoundError, InvalidLicenseKeyFormatError, DeviceNotFoundError):
             raise
         except SQLAlchemyError as exc:
             db.rollback()
-            raise DatabaseError(f"Failed to reset device: {exc}") from exc
+            raise DatabaseError(f"Failed to reset device(s): {exc}") from exc
 
     @staticmethod
     def search_licenses(

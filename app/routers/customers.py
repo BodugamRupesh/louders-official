@@ -163,12 +163,12 @@ async def update_customer(
     response_model=SuccessResponse,
     status_code=status.HTTP_200_OK,
     summary="Delete Customer",
-    description="Delete a customer. Owner only.",
+    description="Delete a customer. Admin or Owner only.",
 )
 async def delete_customer(
     customer_id: int,
     db: Annotated[Session, Depends(get_db)],
-    current_admin: Annotated[AdminUser, Depends(require_owner)],
+    current_admin: Annotated[AdminUser, Depends(require_admin_or_owner)],
 ) -> SuccessResponse:
     CustomerService.delete_customer(db, customer_id)
     return success_response(

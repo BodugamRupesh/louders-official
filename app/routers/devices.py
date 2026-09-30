@@ -146,12 +146,12 @@ async def register_device(
     response_model=SuccessResponse,
     status_code=status.HTTP_200_OK,
     summary="Reset Device",
-    description="Remove a registered device from a license. Owner only.",
+    description="Remove a registered device from a license. Admin or Owner only.",
 )
 async def reset_device(
     reset_data: ResetDeviceRequest,
     db: Annotated[Session, Depends(get_db)],
-    current_admin: Annotated[AdminUser, Depends(require_owner)],
+    current_admin: Annotated[AdminUser, Depends(require_admin_or_owner)],
 ) -> SuccessResponse:
     result = DeviceService.reset_device_by_uuid(
         db,

@@ -689,16 +689,15 @@ const LOUDApp = (() => {
                                 <button class="btn-action-icon edit" onclick="editCustomer(${c.id})" title="Edit Customer">
                                     <i data-lucide="edit-3"></i>
                                 </button>
-                                ${isOwner() ? `
-                                    <button class="btn-action-icon delete" onclick="deleteCustomer(${c.id})" title="Delete Customer">
-                                        <i data-lucide="trash-2"></i>
-                                    </button>
-                                ` : ''}
+                                <button class="btn-action-icon delete" onclick="deleteCustomer(${c.id}, '${escapeHTML(c.name).replace(/'/g, "\\'")}')" title="Delete Customer" style="color:var(--status-revoked);">
+                                    <i data-lucide="trash-2"></i>
+                                </button>
                             </div>
                         </td>
                     `;
                     tbody.appendChild(tr);
                 });
+                if (window.lucide) lucide.createIcons();
             }
         } finally {
             toggleLoader(false);
@@ -716,6 +715,14 @@ const LOUDApp = (() => {
                 document.getElementById('customer-phone').value = c.phone || '';
                 document.getElementById('customer-notes').value = c.notes || '';
 
+                const delBtn = document.getElementById('btn-delete-customer-from-form');
+                if (delBtn) {
+                    delBtn.style.display = 'inline-flex';
+                    delBtn.onclick = () => {
+                        deleteCustomer(c.id, c.name);
+                    };
+                }
+
                 document.getElementById('customer-modal-title').innerText = 'Edit Customer';
                 openModal('modal-customer');
             }
@@ -724,15 +731,20 @@ const LOUDApp = (() => {
         }
     };
 
-    window.deleteCustomer = async function(id) {
-        if (confirm('Are you sure you want to delete this customer? This will orphan their licenses.')) {
-            try {
-                await LOUDAPI.customers.delete(id);
-                showToast('Customer profile deleted.');
-                renderCustomersPane();
-            } catch(e) {
-                showToast(e.message, 'error');
-            }
+    window.deleteCustomer = async function(id, name = '') {
+        const label = name ? `customer "${name}"` : 'this customer';
+        if (!confirm(`Are you sure you want to permanently delete ${label}? All associated licenses and device bindings will also be removed. This cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            await LOUDAPI.customers.delete(id);
+            showToast('Customer deleted successfully.');
+            closeModal('modal-customer');
+            closeModal('modal-customer-details');
+            renderCustomersPane();
+        } catch(e) {
+            showToast(e.message, 'error');
         }
     };
 
@@ -780,6 +792,13 @@ const LOUDApp = (() => {
                         `;
                         tbody.appendChild(tr);
                     });
+                }
+
+                const delModalBtn = document.getElementById('btn-delete-customer-from-modal');
+                if (delModalBtn) {
+                    delModalBtn.onclick = () => {
+                        deleteCustomer(c.id, c.name);
+                    };
                 }
 
                 openModal('modal-customer-details');
@@ -1110,10 +1129,10 @@ const LOUDApp = (() => {
     };
 
     window.resetLicenseHardware = async function(licenseKey) {
-        if (confirm('Are you sure you want to reset all bound devices for this license?')) {
+        if (confirm(`Are you sure you want to reset all bound devices for license ${licenseKey}?`)) {
             try {
                 await LOUDAPI.licenses.resetDevice(licenseKey);
-                showToast('Bound device registrations reset.');
+                showToast('Bound device registrations reset successfully.');
                 renderLicensesPane();
             } catch(e) {
                 showToast(e.message, 'error');
@@ -1605,6 +1624,9 @@ const LOUDApp = (() => {
             document.getElementById('customer-email').value = '';
             document.getElementById('customer-phone').value = '';
             document.getElementById('customer-notes').value = '';
+
+            const delBtn = document.getElementById('btn-delete-customer-from-form');
+            if (delBtn) delBtn.style.display = 'none';
 
             document.getElementById('customer-modal-title').innerText = 'Add Customer';
             openModal('modal-customer');

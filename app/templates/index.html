@@ -910,9 +910,14 @@
                     <label for="customer-notes" class="font-sora">Notes (Optional)</label>
                     <textarea id="customer-notes" placeholder="Enterprise account constraints, comments" rows="3"></textarea>
                 </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary font-sora btn-glow-cyan" onclick="closeModal('modal-customer')">Cancel</button>
-                    <button type="submit" class="btn btn-primary font-sora btn-glow">Save Customer</button>
+                <div class="modal-actions" style="display:flex; justify-content:space-between; align-items:center;">
+                    <button type="button" class="btn btn-danger font-sora" id="btn-delete-customer-from-form" style="display:none; align-items:center; gap:6px; background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3);">
+                        <i data-lucide="trash-2" style="width:14px; height:14px;"></i> Delete Customer
+                    </button>
+                    <div style="display:flex; gap:0.75rem; margin-left:auto;">
+                        <button type="button" class="btn btn-secondary font-sora btn-glow-cyan" onclick="closeModal('modal-customer')">Cancel</button>
+                        <button type="submit" class="btn btn-primary font-sora btn-glow">Save Customer</button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -1084,6 +1089,13 @@
                             <!-- Populated programmatically -->
                         </tbody>
                     </table>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.5rem; padding-top:1rem; border-top:1px solid rgba(255,255,255,0.08);">
+                    <button type="button" class="btn btn-danger font-sora" id="btn-delete-customer-from-modal" style="display:inline-flex; align-items:center; gap:6px; background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3);">
+                        <i data-lucide="trash-2" style="width:14px; height:14px;"></i> Delete Customer
+                    </button>
+                    <button type="button" class="btn btn-secondary font-sora btn-glow-cyan" onclick="closeModal('modal-customer-details')">Close</button>
                 </div>
             </div>
         </div>

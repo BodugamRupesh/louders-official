@@ -17,7 +17,7 @@ from app.exceptions import (
     DuplicateCustomerError,
     InvalidDataError,
 )
-from app.models import Customer, License
+from app.models import Customer, License, Device, ActivityLog
 
 
 class CustomerService:
@@ -230,6 +230,13 @@ class CustomerService:
                 db,
                 customer_id,
             )
+
+            # Explicitly clean up all associated licenses, devices, and activity logs
+            licenses = db.query(License).filter(License.customer_id == customer.id).all()
+            for lic in licenses:
+                db.query(Device).filter(Device.license_id == lic.id).delete()
+                db.query(ActivityLog).filter(ActivityLog.license_id == lic.id).delete()
+                db.delete(lic)
 
             db.delete(customer)
             db.commit()

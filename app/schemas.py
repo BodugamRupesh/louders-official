@@ -526,6 +526,7 @@ class LicenseResetDevice(BaseModel):
         max_length=64,
         pattern=LICENSE_KEY_PATTERN,
     )
+    device_uuid: Optional[str] = None
 
 
 # =====================================================================
