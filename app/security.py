@@ -11,23 +11,20 @@ Provides:
 from app.utils.datetime_utils import get_current_time, minutes_from_now
 from typing import Any
 
+import bcrypt
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 
 from app.config import settings
 from app.exceptions import InvalidTokenError
-
-# Password hashing configuration
-pwd_context = CryptContext(
-    schemes=["bcrypt"],
-    deprecated="auto",
-)
 
 
 def hash_password(password: str) -> str:
     if not password:
         raise ValueError("Password cannot be empty.")
-    return pwd_context.hash(password)
+    pwd_bytes = password.encode("utf-8")[:72]
+    salt = bcrypt.gensalt(rounds=12)
+    return bcrypt.hashpw(pwd_bytes, salt).decode("utf-8")
+
 
 def verify_password(
     plain_password: str,
@@ -36,10 +33,12 @@ def verify_password(
     if not plain_password or not hashed_password:
         return False
 
-    return pwd_context.verify(
-        plain_password,
-        hashed_password,
-    )
+    try:
+        pwd_bytes = plain_password.encode("utf-8")[:72]
+        hash_bytes = hashed_password.encode("utf-8")
+        return bcrypt.checkpw(pwd_bytes, hash_bytes)
+    except Exception:
+        return False
 
 def create_access_token(
     data: dict[str, Any],

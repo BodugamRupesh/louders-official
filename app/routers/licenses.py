@@ -46,6 +46,42 @@ def _serialize_activity_log(activity: ActivityLog) -> dict:
     ).model_dump()
 
 
+@router.get(
+    "",
+    response_model=SuccessResponse,
+    status_code=status.HTTP_200_OK,
+    summary="List Licenses",
+    description="Retrieve all licenses with optional filters. Authenticated admins only.",
+)
+async def list_licenses(
+    db: Annotated[Session, Depends(get_db)],
+    current_admin: Annotated[AdminUser, Depends(get_current_admin)],
+    q: str | None = Query(None, description="Search query"),
+    customer_id: int | None = Query(None, ge=1, description="Filter by customer ID"),
+    product_id: int | None = Query(None, ge=1, description="Filter by product ID"),
+    status: str | None = Query(None, description="Filter by license status"),
+) -> SuccessResponse:
+    if q is not None:
+        q = q.strip()
+        if not q:
+            q = None
+
+    licenses = LicenseService.search_licenses(
+        db,
+        query_str=q,
+        customer_id=customer_id,
+        product_id=product_id,
+        status=status,
+    )
+    return success_response(
+        "Licenses retrieved successfully.",
+        data={
+            "licenses": [_serialize_license(license_obj) for license_obj in licenses],
+            "count": len(licenses),
+        },
+    )
+
+
 @router.post(
     "",
     response_model=SuccessResponse,
@@ -293,17 +329,54 @@ async def reset_device(
     )
 
 
+@router.get(
+    "/stats",
+    response_model=SuccessResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get License Stats",
+    description="Retrieve overall license statistics. Authenticated admins only.",
+)
+async def get_license_stats(
+    db: Annotated[Session, Depends(get_db)],
+    current_admin: Annotated[AdminUser, Depends(get_current_admin)],
+) -> SuccessResponse:
+    stats = LicenseService.get_license_stats(db)
+    return success_response(
+        "License statistics retrieved successfully.",
+        data={"stats": stats},
+    )
+
+
+@router.get(
+    "/{license_id}",
+    response_model=SuccessResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get License",
+    description="Retrieve a specific license by ID. Authenticated admins only.",
+)
+async def get_license(
+    license_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    current_admin: Annotated[AdminUser, Depends(get_current_admin)],
+) -> SuccessResponse:
+    license_obj = LicenseService.get_license(db, license_id)
+    return success_response(
+        "License retrieved successfully.",
+        data={"license": _serialize_license(license_obj)},
+    )
+
+
 @router.delete(
     "/{license_id}",
     response_model=SuccessResponse,
     status_code=status.HTTP_200_OK,
     summary="Delete License",
-    description="Delete a license. Owner only.",
+    description="Delete a license. Admin or Owner only.",
 )
 async def delete_license(
     license_id: int,
     db: Annotated[Session, Depends(get_db)],
-    current_admin: Annotated[AdminUser, Depends(require_owner)],
+    current_admin: Annotated[AdminUser, Depends(require_admin_or_owner)],
 ) -> SuccessResponse:
     LicenseService.delete_license(db, license_id)
     return success_response(
@@ -333,20 +406,3 @@ async def get_license_activity(
         },
     )
 
-
-@router.get(
-    "/stats",
-    response_model=SuccessResponse,
-    status_code=status.HTTP_200_OK,
-    summary="Get License Stats",
-    description="Retrieve overall license statistics. Authenticated admins only.",
-)
-async def get_license_stats(
-    db: Annotated[Session, Depends(get_db)],
-    current_admin: Annotated[AdminUser, Depends(get_current_admin)],
-) -> SuccessResponse:
-    stats = LicenseService.get_license_stats(db)
-    return success_response(
-        "License statistics retrieved successfully.",
-        data={"stats": stats},
-    )

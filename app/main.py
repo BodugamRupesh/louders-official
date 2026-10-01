@@ -14,6 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
@@ -32,6 +33,7 @@ from app.exceptions import (
 from app.models import AdminUser, Product
 from app.routers import (
     admin,
+    analytics,
     auth,
     customers,
     devices,
@@ -40,6 +42,7 @@ from app.routers import (
     plans,
     products,
 )
+from app.security import hash_password, verify_password
 from app.services.admin_service import AdminService
 from app.utils.responses import error_response
 
@@ -60,7 +63,7 @@ def _validate_database_ready() -> None:
 
 
 def _ensure_initial_admin() -> None:
-    """Create the initial owner admin from environment settings when needed."""
+    """Create or synchronize the initial owner admin from environment settings."""
     if not settings.ADMIN_USERNAME or not settings.ADMIN_PASSWORD:
         logger.warning(
             "ADMIN_USERNAME or ADMIN_PASSWORD is not configured; skipping initial admin seeding."
@@ -69,12 +72,19 @@ def _ensure_initial_admin() -> None:
 
     db = SessionLocal()
     try:
-        owner_exists = (
+        admin_user = (
             db.query(AdminUser)
-            .filter(AdminUser.role == "owner")
+            .filter(AdminUser.username == settings.ADMIN_USERNAME)
             .first()
         )
-        if owner_exists is not None:
+        if admin_user is not None:
+            if not verify_password(settings.ADMIN_PASSWORD, admin_user.password_hash):
+                admin_user.password_hash = hash_password(settings.ADMIN_PASSWORD)
+                db.commit()
+                logger.info(
+                    "Synchronized password hash for admin '%s' with environment settings.",
+                    admin_user.username,
+                )
             return
 
         AdminService.create_admin(
@@ -85,7 +95,7 @@ def _ensure_initial_admin() -> None:
         )
         logger.info("Initial admin user created successfully from environment settings.")
     except SQLAlchemyError as exc:
-        logger.exception("Failed to create the initial admin user: %s", exc)
+        logger.exception("Failed to create/synchronize the initial admin user: %s", exc)
     finally:
         db.close()
 
@@ -148,25 +158,30 @@ async def startup_event():
 # Middleware
 # --------------------------------------------------------------------
 
-cors_origins = [
+DEFAULT_ALLOWED_ORIGINS = [
+    "https://louders-official.onrender.com",
+    "http://localhost:8000",
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:8000",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+]
+env_origins = [
     origin.strip()
     for origin in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
     if origin.strip()
 ]
+cors_origins = list(dict.fromkeys(DEFAULT_ALLOWED_ORIGINS + env_origins))
 
-allow_credentials = True
-if not cors_origins and settings.DEBUG:
-    cors_origins = ["*"]
-    allow_credentials = False
-
-if cors_origins:
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=cors_origins,
-        allow_credentials=allow_credentials,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_origin_regex=r"^chrome-extension://.*",
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.add_middleware(
     GZipMiddleware,
@@ -235,7 +250,10 @@ app.include_router(licenses.router)
 app.include_router(devices.router)
 app.include_router(plans.router)
 app.include_router(admin.router)
+app.include_router(admin.alias_router)
 app.include_router(extensions.router)
+app.include_router(analytics.router)
+
 
 
 # --------------------------------------------------------------------
@@ -326,10 +344,10 @@ async def handle_license_server_exception(
     )
 
 
-@app.exception_handler(HTTPException)
+@app.exception_handler(StarletteHTTPException)
 async def handle_http_exception(
     request: Request,
-    exc: HTTPException,
+    exc: StarletteHTTPException,
 ):
     message = (
         exc.detail
@@ -337,10 +355,11 @@ async def handle_http_exception(
         else str(exc.detail)
     )
 
+    code = "NOT_FOUND" if exc.status_code == 404 else "HTTP_EXCEPTION"
     return JSONResponse(
         status_code=exc.status_code,
         content=error_response(
-            "HTTP_EXCEPTION",
+            code,
             message,
         ).model_dump(),
     )
@@ -348,25 +367,47 @@ async def handle_http_exception(
 
 @app.exception_handler(RequestValidationError)
 async def handle_request_validation_error(request: Request, exc: RequestValidationError):
-    """Log request validation errors and return the standard FastAPI response.
-
-    This helps capture the exact Pydantic validation messages and the request body
-    when a 422 Unprocessable Entity is raised.
-    """
+    """Return standard JSON error on request validation errors."""
     try:
-        body = await request.body()
-        logger.error(
-            "Request validation error for %s %s: %s - body: %s",
-            request.method,
-            request.url.path,
-            exc.errors(),
-            body.decode('utf-8', errors='replace'),
+        errors = exc.errors()
+        err_msg = "; ".join(
+            [f"{'.'.join(str(loc) for loc in err.get('loc', []))}: {err.get('msg')}" for err in errors]
         )
     except Exception:
-        logger.exception("Failed to read request body for validation error")
+        err_msg = "Request validation failed."
 
-    # Delegate to FastAPI's default handler to produce the usual 422 response
-    return await request_validation_exception_handler(request, exc)
+    logger.warning("Request validation error on %s %s: %s", request.method, request.url.path, err_msg)
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content=error_response(
+            "VALIDATION_ERROR",
+            err_msg,
+        ).model_dump(),
+    )
+
+
+@app.exception_handler(SQLAlchemyError)
+async def handle_sqlalchemy_exception(request: Request, exc: SQLAlchemyError):
+    logger.exception("Database error on %s %s: %s", request.method, request.url.path, exc)
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content=error_response(
+            "DATABASE_ERROR",
+            "A database error occurred. Please try again.",
+        ).model_dump(),
+    )
+
+
+@app.exception_handler(Exception)
+async def handle_general_exception(request: Request, exc: Exception):
+    logger.exception("Unhandled server exception on %s %s: %s", request.method, request.url.path, exc)
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content=error_response(
+            "INTERNAL_SERVER_ERROR",
+            "An internal server error occurred. Please try again.",
+        ).model_dump(),
+    )
 
 
 # --------------------------------------------------------------------
@@ -398,7 +439,7 @@ def home(request: Request):
 def health():
     """Health check endpoint."""
     return {
-        "status": "healthy",
+        "status": "ok",
         "application": settings.APP_NAME,
         "version": settings.VERSION,
-    }
+    }

@@ -234,3 +234,15 @@ async def reset_password(
         data={"reset": True},
     )
 
+
+alias_router = APIRouter(
+    prefix="/api/v1/admin",
+    tags=["Admin Alias"],
+)
+alias_router.add_api_route("/stats", get_admin_stats, methods=["GET"], response_model=SuccessResponse)
+alias_router.add_api_route("", list_admins, methods=["GET"], response_model=SuccessResponse)
+alias_router.add_api_route("/search", search_admins, methods=["GET"], response_model=SuccessResponse)
+alias_router.add_api_route("/change-password", change_password, methods=["POST"], response_model=SuccessResponse)
+alias_router.add_api_route("/reset-password", reset_password, methods=["POST"], response_model=SuccessResponse)
+
+

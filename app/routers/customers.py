@@ -15,6 +15,7 @@ from app.schemas import (
     CustomerCreate,
     CustomerResponse,
     CustomerUpdate,
+    DeviceResponse,
     LicenseResponse,
     SuccessResponse,
 )
@@ -233,3 +234,37 @@ async def get_customer_licenses(
             "count": len(licenses),
         },
     )
+
+
+@router.get(
+    "/{customer_id}/devices",
+    response_model=SuccessResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get Customer Devices",
+    description="Retrieve all devices associated with a customer's licenses. Authenticated admins only.",
+)
+async def get_customer_devices(
+    customer_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    current_admin: Annotated[AdminUser, Depends(get_current_admin)],
+) -> SuccessResponse:
+    customer = CustomerService.get_customer(db, customer_id)
+    devices = []
+    if customer.licenses:
+        for lic in customer.licenses:
+            if lic.devices:
+                for dev in lic.devices:
+                    devices.append(
+                        DeviceResponse.model_validate(
+                            dev,
+                            from_attributes=True,
+                        ).model_dump()
+                    )
+    return success_response(
+        "Customer devices retrieved successfully.",
+        data={
+            "devices": devices,
+            "count": len(devices),
+        },
+    )
+

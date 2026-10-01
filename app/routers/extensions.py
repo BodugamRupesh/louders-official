@@ -17,7 +17,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Device
+from app.models import Device, Product
 from app.schemas import (
     ExtensionActivateRequest,
     ExtensionVerifyRequest,
@@ -459,3 +459,26 @@ async def deactivate_license(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc),
         )
+
+
+@router.get(
+    "/version",
+    summary="Get Extension Version",
+    description="Retrieve the latest extension version.",
+)
+async def get_extension_version(
+    db: Session = Depends(get_db),
+    product_api_key: Optional[str] = None,
+):
+    version = "1.0.0"
+    if product_api_key:
+        product = db.query(Product).filter(Product.api_key == product_api_key).first()
+        if product:
+            version = product.version
+    return {
+        "success": True,
+        "version": version,
+        "latest_version": version,
+        "min_version": "1.0.0",
+    }
+

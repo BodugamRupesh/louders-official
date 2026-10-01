@@ -665,12 +665,19 @@ class SuccessResponse(BaseModel):
     data: dict[str, Any] | None = None
 
 
+class ErrorDetail(BaseModel):
+    code: str
+    message: str
+
+
 class ErrorResponse(BaseModel):
     """Generic error response."""
     
     success: bool = False
     message: str
     error_code: Optional[str] = None
+    error: Optional[ErrorDetail] = None
+
 
 
 # =====================================================================

@@ -4,7 +4,7 @@
  */
 
 const LOUDAPI = (() => {
-    const BASE_URL = ''; // Same host
+    const BASE_URL = window.LOUD_API_BASE_URL || ''; // Configurable or same host
 
     // Retrieve storage item helper
     const getToken = () => localStorage.getItem('loud_access_token');
@@ -31,6 +31,7 @@ const LOUDAPI = (() => {
 
         function extractErrorMessage(payload) {
             if (!payload) return null;
+            if (payload.error && typeof payload.error.message === 'string') return payload.error.message;
             if (typeof payload.message === 'string') return payload.message;
 
             if (Array.isArray(payload.detail)) {
@@ -83,8 +84,43 @@ const LOUDAPI = (() => {
 
         try {
             const response = await fetch(`${BASE_URL}${endpoint}`, config);
+
+            // Handle 204 No Content
+            if (response.status === 204) {
+                return null;
+            }
+
             const text = await response.text();
-            const payload = text ? JSON.parse(text) : null;
+            let payload = null;
+
+            if (text && text.trim().length > 0) {
+                try {
+                    payload = JSON.parse(text);
+                } catch (parseErr) {
+                    console.warn(`Non-JSON response from ${endpoint} [${response.status}]:`, text.slice(0, 150));
+                    payload = {
+                        success: false,
+                        error_code: response.status >= 500 ? 'INTERNAL_SERVER_ERROR' : 'HTTP_ERROR',
+                        message: response.status >= 500 
+                            ? 'The server encountered an error. Please try again.' 
+                            : (response.status === 404 ? 'Resource not found.' : `Request failed with status ${response.status}.`),
+                        error: {
+                            code: response.status >= 500 ? 'INTERNAL_SERVER_ERROR' : 'HTTP_ERROR',
+                            message: 'Unable to process server response.'
+                        }
+                    };
+                }
+            } else if (!response.ok) {
+                payload = {
+                    success: false,
+                    error_code: `HTTP_${response.status}`,
+                    message: response.statusText || `Request failed with status ${response.status}`,
+                    error: {
+                        code: `HTTP_${response.status}`,
+                        message: response.statusText || 'Error'
+                    }
+                };
+            }
 
             if (!response.ok) {
                 handleHttpError(response, payload);
@@ -92,6 +128,12 @@ const LOUDAPI = (() => {
 
             return payload;
         } catch (error) {
+            if (error.name === 'TypeError' && error.message && error.message.toLowerCase().includes('fetch')) {
+                const netErr = new Error('Network error or server unreachable. If the server is waking up, please retry.');
+                netErr.status = 0;
+                netErr.error_code = 'NETWORK_ERROR';
+                throw netErr;
+            }
             console.error(`API Error [${endpoint}]:`, error);
             throw error;
         }
@@ -239,11 +281,24 @@ const LOUDAPI = (() => {
             },
             async getLicenses(id) {
                 return request(`/api/v1/customers/${id}/licenses`, { method: 'GET' });
+            },
+            async getDevices(id) {
+                return request(`/api/v1/customers/${id}/devices`, { method: 'GET' });
             }
         },
 
         // Licenses Endpoints
         licenses: {
+            async list(filters = {}) {
+                let url = '/api/v1/licenses';
+                const params = [];
+                if (filters.q) params.push(`q=${encodeURIComponent(filters.q)}`);
+                if (filters.customer_id) params.push(`customer_id=${filters.customer_id}`);
+                if (filters.product_id) params.push(`product_id=${filters.product_id}`);
+                if (filters.status) params.push(`status=${encodeURIComponent(filters.status)}`);
+                if (params.length > 0) url += `?${params.join('&')}`;
+                return request(url, { method: 'GET' });
+            },
             async create(data) {
                 return request('/api/v1/licenses', {
                     method: 'POST',
@@ -400,6 +455,13 @@ const LOUDAPI = (() => {
             async getStats() {
                 // Resolved /stats route issue by putting stats above /{admin_id} in backend
                 return request('/api/v1/admins/stats', { method: 'GET' });
+            }
+        },
+
+        // Analytics Endpoints
+        analytics: {
+            async get() {
+                return request('/api/v1/analytics', { method: 'GET' });
             }
         }
     };
