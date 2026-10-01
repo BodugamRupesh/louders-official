@@ -4,7 +4,7 @@
  */
 
 const LOUDAPI = (() => {
-    const BASE_URL = 'http://127.0.0.1:8000'; // Backend API server root
+    const BASE_URL = ''; // Same host
 
     // Retrieve storage item helper
     const getToken = () => localStorage.getItem('loud_access_token');
@@ -65,7 +65,7 @@ const LOUDAPI = (() => {
         }
 
         function handleHttpError(response, payload) {
-            if (response.status === 401 && !endpoint.includes('/auth/login')) {
+            if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/me')) {
                 clearToken();
                 window.dispatchEvent(new CustomEvent('loud-unauthorized'));
             } else if (response.status === 403) {
@@ -260,6 +260,15 @@ const LOUDAPI = (() => {
                 if (params.length > 0) url += `?${params.join('&')}`;
                 return request(url, { method: 'GET' });
             },
+            async delete(id) {
+                return request(`/api/v1/licenses/${id}`, { method: 'DELETE' });
+            },
+            async deleteRevoked(licenseKey) {
+                return request('/api/v1/licenses/delete-revoked', {
+                    method: 'POST',
+                    body: JSON.stringify({ license_key: licenseKey })
+                });
+            },
             async reactivate(licenseKey) {
                 return request('/api/v1/licenses/reactivate', {
                     method: 'POST',
@@ -296,15 +305,6 @@ const LOUDAPI = (() => {
                     body: JSON.stringify({ license_key: licenseKey, reason })
                 });
             },
-            async delete(id) {
-                return request(`/api/v1/licenses/${id}`, { method: 'DELETE' });
-            },
-            async deleteRevoked(licenseKey) {
-                return request('/api/v1/licenses/delete-revoked', {
-                    method: 'POST',
-                    body: JSON.stringify({ license_key: licenseKey })
-                });
-            },
             async resetDevice(licenseKey) {
                 return request('/api/v1/licenses/reset-device', {
                     method: 'POST',
@@ -325,12 +325,8 @@ const LOUDAPI = (() => {
                 let url = '/api/v1/devices';
                 const params = [];
                 if (filters.license_id) params.push(`license_id=${filters.license_id}`);
-                if (filters.device_id) params.push(`device_id=${filters.device_id}`);
-                if (filters.device_uuid) params.push(`device_uuid=${encodeURIComponent(filters.device_uuid)}`);
                 if (filters.browser) params.push(`browser=${encodeURIComponent(filters.browser)}`);
                 if (filters.operating_system) params.push(`operating_system=${encodeURIComponent(filters.operating_system)}`);
-                if (filters.status) params.push(`status=${encodeURIComponent(filters.status)}`);
-                if (filters.q) params.push(`q=${encodeURIComponent(filters.q)}`);
                 if (params.length > 0) url += `?${params.join('&')}`;
                 return request(url, { method: 'GET' });
             },
@@ -360,12 +356,6 @@ const LOUDAPI = (() => {
             },
             async heartbeat(id) {
                 return request(`/api/v1/devices/${id}/heartbeat`, { method: 'POST' });
-            },
-            async disable(id) {
-                return request(`/api/v1/devices/${id}/disable`, { method: 'POST' });
-            },
-            async reactivate(id) {
-                return request(`/api/v1/devices/${id}/reactivate`, { method: 'POST' });
             }
         },
 

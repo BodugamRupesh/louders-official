@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Louders Official",
-  "version": "1.0",
-  "description": "Louders Official - Made with punjuu",
+  "version": "2.0",
+  "description": "LOUDERS Official - Dual Audio Engine Suite (LOUDERS-1 & LOUDERS-2)",
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -38,13 +38,14 @@
     {
       "matches": ["<all_urls>"],
       "js": ["content.js"],
+      "css": ["styles.css"],
       "run_at": "document_start",
-      "all_frames": true
+      "all_frames": false
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["inject.js"],
+      "resources": ["inject.js", "styles.css"],
       "matches": ["<all_urls>"]
     }
   ]

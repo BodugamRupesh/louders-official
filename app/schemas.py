@@ -242,6 +242,13 @@ class CustomerResponse(BaseModel):
     phone: Optional[str] = None
     notes: Optional[str] = None
     created_at: datetime
+    license_count: Optional[int] = 0
+    primary_license_key: Optional[str] = None
+    primary_license_status: Optional[str] = None
+    primary_license_expiry: Optional[datetime] = None
+    primary_license_devices: Optional[int] = 0
+    primary_license_max_devices: Optional[int] = 0
+
 
 
 # =====================================================================

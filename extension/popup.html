@@ -24,9 +24,9 @@
             <header>
                 <div class="header-top-pill">
                     <span class="badge-dot"></span>
-                    <span class="pill-text">DSP ENGINE</span>
+                    <span class="pill-text">DUAL DSP SUITE</span>
                     <span class="pill-sep">•</span>
-                    <span class="pill-author">made with punjuu</span>
+                    <span class="pill-author">LOUDERS-1 & LOUDERS-2</span>
                 </div>
 
                 <div class="brand-header-row">
@@ -52,205 +52,378 @@
                 </div>
             </header>
 
-            <div class="presets-container">
-                <div class="presets-label-bar">
-                    <span>MACRO MODES</span>
-                    <span class="preset-hint">TACTILE PRESETS</span>
-                </div>
-                <div class="presets">
-                    <button class="preset-btn" data-preset="radio">
-                        <span class="btn-top">
-                            <span class="btn-led led-blue"></span>
-                            <span class="btn-text">SOUND 1</span>
-                        </span>
-                        <span class="btn-depth"></span>
+            <!-- Dual Engine Selector Rail -->
+            <div class="engine-rail">
+                <div class="engine-switch-track">
+                    <button type="button" class="engine-btn active" id="engine-btn-l1" data-engine="l1">
+                        <span class="engine-led led-cyan" id="l1-led-status"></span>
+                        <span class="engine-name">LOUDERS-1</span>
+                        <span class="engine-state-pill pill-on" id="l1-power-badge">ON</span>
                     </button>
-                    <button class="preset-btn" data-preset="cave">
-                        <span class="btn-top">
-                            <span class="btn-led led-purple"></span>
-                            <span class="btn-text">SOUND 2</span>
-                        </span>
-                        <span class="btn-depth"></span>
-                    </button>
-                    <button class="preset-btn" data-preset="mega">
-                        <span class="btn-top">
-                            <span class="btn-led led-magenta"></span>
-                            <span class="btn-text">SOUND 3</span>
-                        </span>
-                        <span class="btn-depth"></span>
-                    </button>
-                    <button class="preset-btn" data-preset="nuke">
-                        <span class="btn-top">
-                            <span class="btn-led led-amber"></span>
-                            <span class="btn-text">SOUND 4</span>
-                        </span>
-                        <span class="btn-depth"></span>
-                    </button>
-                    <button class="preset-btn preset-reset" data-preset="reset">
-                        <span class="btn-top">
-                            <span class="btn-led led-red"></span>
-                            <span class="btn-text">RESET</span>
-                        </span>
-                        <span class="btn-depth"></span>
-                    </button>
-                </div>
-
-            <div class="tabs-rail">
-                <div class="tabs">
-                    <button class="tab-btn active" data-tab="encoder">
-                        <span class="tab-glow"></span>
-                        <span class="tab-label">Encoder</span>
-                    </button>
-                    <button class="tab-btn" data-tab="decoder">
-                        <span class="tab-glow"></span>
-                        <span class="tab-label">Decoder</span>
-                    </button>
-                    <button class="tab-btn" data-tab="counters">
-                        <span class="tab-glow"></span>
-                        <span class="tab-label">VST Plugins</span>
+                    <button type="button" class="engine-btn" id="engine-btn-l2" data-engine="l2">
+                        <span class="engine-led led-magenta" id="l2-led-status"></span>
+                        <span class="engine-name">LOUDERS-2</span>
+                        <span class="engine-state-pill pill-on" id="l2-power-badge">ON</span>
                     </button>
                 </div>
             </div>
 
-            <div class="content-scrollable">
-                <div class="tab-content active" id="encoder">
-                    <div class="control-card">
-                        <div class="card-head">
-                            <label for="gain" class="ctrl-label">
-                                <span class="ctrl-icon-dot"></span>
-                                VOLUME
-                            </label>
-                            <div class="lcd-badge" id="gainVal">1dB</div>
+            <!-- ============================================== -->
+            <!-- LOUDERS-1 VIEW                                 -->
+            <!-- ============================================== -->
+            <div class="engine-view active" id="view-l1">
+                <!-- Master Power Card for Louders-1 -->
+                <div class="control-card toggle-card engine-power-card">
+                    <div class="toggle-meta">
+                        <span class="ctrl-label"><span class="ctrl-icon-dot"></span> LOUDERS-1 ENGINE POWER</span>
+                        <span class="toggle-desc">Studio DSP & VST APO Rack</span>
+                    </div>
+                    <label class="switch" for="l1-power-toggle">
+                        <input type="checkbox" id="l1-power-toggle" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+
+                <div class="presets-container">
+                    <div class="presets-label-bar">
+                        <span>MACRO MODES</span>
+                        <span class="preset-hint">TACTILE PRESETS</span>
+                    </div>
+                    <div class="presets">
+                        <button class="preset-btn" data-preset="radio">
+                            <span class="btn-top">
+                                <span class="btn-led led-blue"></span>
+                                <span class="btn-text">SOUND 1</span>
+                            </span>
+                            <span class="btn-depth"></span>
+                        </button>
+                        <button class="preset-btn" data-preset="cave">
+                            <span class="btn-top">
+                                <span class="btn-led led-purple"></span>
+                                <span class="btn-text">SOUND 2</span>
+                            </span>
+                            <span class="btn-depth"></span>
+                        </button>
+                        <button class="preset-btn" data-preset="mega">
+                            <span class="btn-top">
+                                <span class="btn-led led-magenta"></span>
+                                <span class="btn-text">SOUND 3</span>
+                            </span>
+                            <span class="btn-depth"></span>
+                        </button>
+                        <button class="preset-btn" data-preset="nuke">
+                            <span class="btn-top">
+                                <span class="btn-led led-amber"></span>
+                                <span class="btn-text">SOUND 4</span>
+                            </span>
+                            <span class="btn-depth"></span>
+                        </button>
+                        <button class="preset-btn preset-reset" data-preset="reset">
+                            <span class="btn-top">
+                                <span class="btn-led led-red"></span>
+                                <span class="btn-text">RESET</span>
+                            </span>
+                            <span class="btn-depth"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="tabs-rail">
+                    <div class="tabs">
+                        <button class="tab-btn active" data-tab="encoder">
+                            <span class="tab-glow"></span>
+                            <span class="tab-label">Encoder</span>
+                        </button>
+                        <button class="tab-btn" data-tab="decoder">
+                            <span class="tab-glow"></span>
+                            <span class="tab-label">Decoder</span>
+                        </button>
+                        <button class="tab-btn" data-tab="counters">
+                            <span class="tab-glow"></span>
+                            <span class="tab-label">VST Plugins</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="content-scrollable">
+                    <div class="tab-content active" id="encoder">
+                        <div class="control-card">
+                            <div class="card-head">
+                                <label for="gain" class="ctrl-label">
+                                    <span class="ctrl-icon-dot"></span>
+                                    VOLUME
+                                </label>
+                                <div class="lcd-badge" id="gainVal">1dB</div>
+                            </div>
+                            <div class="slider-groove">
+                                <input type="range" id="gain" min="0" max="100" step="1" value="1">
+                            </div>
                         </div>
-                        <div class="slider-groove">
-                            <input type="range" id="gain" min="0" max="100" step="1" value="1">
+
+                        <div class="control-card">
+                            <div class="card-head">
+                                <label for="clearness" class="ctrl-label">
+                                    <span class="ctrl-icon-dot"></span>
+                                    CLARITY
+                                </label>
+                                <div class="lcd-badge" id="clearnessVal">0dB</div>
+                            </div>
+                            <div class="slider-groove">
+                                <input type="range" id="clearness" min="-10" max="100" step="1" value="0">
+                            </div>
+                        </div>
+
+                        <div class="control-card">
+                            <div class="card-head">
+                                <label for="compressor" class="ctrl-label">
+                                    <span class="ctrl-icon-dot"></span>
+                                    COMPRESSOR
+                                </label>
+                                <div class="lcd-badge" id="compressorVal">0%</div>
+                            </div>
+                            <div class="slider-groove">
+                                <input type="range" id="compressor" min="0" max="100" step="1" value="0">
+                            </div>
+                        </div>
+
+                        <div class="control-card">
+                            <div class="card-head">
+                                <label for="distortion" class="ctrl-label">
+                                    <span class="ctrl-icon-dot"></span>
+                                    DISTORTION
+                                </label>
+                                <div class="lcd-badge" id="distortionVal">0%</div>
+                            </div>
+                            <div class="slider-groove">
+                                <input type="range" id="distortion" min="0" max="100" step="1" value="0">
+                            </div>
                         </div>
                     </div>
 
-                    <div class="control-card">
-                        <div class="card-head">
-                            <label for="clearness" class="ctrl-label">
-                                <span class="ctrl-icon-dot"></span>
-                                CLARITY
-                            </label>
-                            <div class="lcd-badge" id="clearnessVal">0dB</div>
+                    <div class="tab-content" id="decoder">
+                        <div class="control-card">
+                            <div class="card-head">
+                                <label for="bass" class="ctrl-label">
+                                    <span class="ctrl-icon-dot"></span>
+                                    BASS BOOST
+                                </label>
+                                <div class="lcd-badge" id="bassVal">0dB</div>
+                            </div>
+                            <div class="slider-groove">
+                                <input type="range" id="bass" min="-10" max="30" step="1" value="0">
+                            </div>
                         </div>
-                        <div class="slider-groove">
-                            <input type="range" id="clearness" min="-10" max="100" step="1" value="0">
+
+                        <div class="control-card">
+                            <div class="card-head">
+                                <label for="pan" class="ctrl-label">
+                                    <span class="ctrl-icon-dot"></span>
+                                    PAN SYSTEM
+                                </label>
+                                <div class="lcd-badge" id="panVal">Center</div>
+                            </div>
+                            <div class="slider-groove">
+                                <input type="range" id="pan" min="-1" max="1" step="0.05" value="0">
+                            </div>
+                            <div class="pan-labels">
+                                <span>L 100%</span>
+                                <span class="pan-center-mark">CENTER</span>
+                                <span>R 100%</span>
+                            </div>
+                        </div>
+
+                        <div class="control-card toggle-card">
+                            <div class="toggle-meta">
+                                <span class="ctrl-label">
+                                    <span class="ctrl-icon-dot"></span>
+                                    REVERB EFFECT
+                                </span>
+                                <span class="toggle-desc">Atmospheric Room Reflex</span>
+                            </div>
+                            <label class="switch" for="reverb">
+                                <input type="checkbox" id="reverb">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+
+                        <div class="control-card">
+                            <div class="card-head">
+                                <label for="tremolo" class="ctrl-label">
+                                    <span class="ctrl-icon-dot"></span>
+                                    TREMOLO
+                                </label>
+                                <div class="lcd-badge" id="tremoloVal">0%</div>
+                            </div>
+                            <div class="slider-groove">
+                                <input type="range" id="tremolo" min="0" max="100" step="1" value="0">
+                            </div>
+                        </div>
+
+                        <div class="control-card">
+                            <div class="card-head">
+                                <label for="flanger" class="ctrl-label">
+                                    <span class="ctrl-icon-dot"></span>
+                                    FLANGER
+                                </label>
+                                <div class="lcd-badge" id="flangerVal">0%</div>
+                            </div>
+                            <div class="slider-groove">
+                                <input type="range" id="flanger" min="0" max="100" step="1" value="0">
+                            </div>
                         </div>
                     </div>
 
-                    <div class="control-card">
-                        <div class="card-head">
-                            <label for="compressor" class="ctrl-label">
-                                <span class="ctrl-icon-dot"></span>
-                                COMPRESSOR
-                            </label>
-                            <div class="lcd-badge" id="compressorVal">0%</div>
+                    <div class="tab-content" id="counters">
+                        <div class="vst-sync-bar">
+                            <button class="vst-btn" id="sync-vst-btn">
+                                <span class="vst-btn-glow"></span>
+                                <span class="vst-btn-text">SCAN PLUGINS</span>
+                            </button>
+                            <span class="vst-status-text" id="vst-count-status">0 plugins</span>
                         </div>
-                        <div class="slider-groove">
-                            <input type="range" id="compressor" min="0" max="100" step="1" value="0">
-                        </div>
+                        <div id="vst-list"></div>
                     </div>
+                </div>
+            </div>
 
-                    <div class="control-card">
-                        <div class="card-head">
-                            <label for="distortion" class="ctrl-label">
-                                <span class="ctrl-icon-dot"></span>
-                                DISTORTION
-                            </label>
-                            <div class="lcd-badge" id="distortionVal">0%</div>
+            <!-- ============================================== -->
+            <!-- LOUDERS-2 VIEW                                 -->
+            <!-- ============================================== -->
+            <div class="engine-view" id="view-l2" style="display: none;">
+                <!-- Master Power Card for Louders-2 -->
+                <div class="control-card toggle-card engine-power-card l2-accent-card">
+                    <div class="toggle-meta">
+                        <span class="ctrl-label"><span class="ctrl-icon-dot dot-crimson"></span> LOUDERS-2 ENGINE POWER</span>
+                        <span class="toggle-desc">Ultra Max Voice Booster & Pitch Shifter</span>
+                    </div>
+                    <label class="switch" for="l2-power-toggle">
+                        <input type="checkbox" id="l2-power-toggle" checked>
+                        <span class="slider round slider-crimson"></span>
+                    </label>
+                </div>
+
+                <!-- Live Meters Card -->
+                <div class="control-card l2-meter-card">
+                    <div class="card-head">
+                        <span class="ctrl-label"><span class="ctrl-icon-dot dot-crimson"></span> DUAL LIVE METERS</span>
+                        <div class="lcd-badge badge-crimson" id="l2-meter-badge">ACTIVE</div>
+                    </div>
+                    <div class="meter-group">
+                        <div class="meter-row">
+                            <span class="meter-label">MIC IN</span>
+                            <div class="meter-bar"><div class="meter-bar-fill" id="pop-meter-in"></div></div>
                         </div>
-                        <div class="slider-groove">
-                            <input type="range" id="distortion" min="0" max="100" step="1" value="0">
+                        <div class="meter-row">
+                            <span class="meter-label">VOICE OUT</span>
+                            <div class="meter-bar"><div class="meter-bar-fill meter-out-fill" id="pop-meter-out"></div></div>
                         </div>
                     </div>
                 </div>
 
-                <div class="tab-content" id="decoder">
+                <div class="content-scrollable">
                     <div class="control-card">
                         <div class="card-head">
-                            <label for="bass" class="ctrl-label">
-                                <span class="ctrl-icon-dot"></span>
+                            <label for="l2-gain" class="ctrl-label">
+                                <span class="ctrl-icon-dot dot-crimson"></span>
+                                ULTRA MAX VOICE GAIN
+                            </label>
+                            <div class="lcd-badge badge-crimson" id="l2-gainVal">64.00×</div>
+                        </div>
+                        <div class="slider-groove">
+                            <input type="range" id="l2-gain" min="0" max="100" step="0.1" value="100">
+                        </div>
+                    </div>
+
+                    <div class="control-card">
+                        <div class="card-head">
+                            <label for="l2-gate" class="ctrl-label">
+                                <span class="ctrl-icon-dot dot-crimson"></span>
+                                NOISE CUT (CLARITY GATE)
+                            </label>
+                            <div class="lcd-badge badge-crimson" id="l2-gateVal">15%</div>
+                        </div>
+                        <div class="slider-groove">
+                            <input type="range" id="l2-gate" min="0" max="100" step="1" value="15">
+                        </div>
+                    </div>
+
+                    <div class="control-card">
+                        <div class="card-head">
+                            <label for="l2-bass" class="ctrl-label">
+                                <span class="ctrl-icon-dot dot-crimson"></span>
                                 BASS BOOST
                             </label>
-                            <div class="lcd-badge" id="bassVal">0dB</div>
+                            <div class="lcd-badge badge-crimson" id="l2-bassVal">+4 dB</div>
                         </div>
                         <div class="slider-groove">
-                            <input type="range" id="bass" min="-10" max="30" step="1" value="0">
+                            <input type="range" id="l2-bass" min="-20" max="40" step="1" value="4">
                         </div>
                     </div>
 
                     <div class="control-card">
                         <div class="card-head">
-                            <label for="pan" class="ctrl-label">
-                                <span class="ctrl-icon-dot"></span>
-                                PAN SYSTEM
+                            <label for="l2-treble" class="ctrl-label">
+                                <span class="ctrl-icon-dot dot-crimson"></span>
+                                TREBLE AIR
                             </label>
-                            <div class="lcd-badge" id="panVal">Center</div>
+                            <div class="lcd-badge badge-crimson" id="l2-trebleVal">+2 dB</div>
                         </div>
                         <div class="slider-groove">
-                            <input type="range" id="pan" min="-1" max="1" step="0.05" value="0">
-                        </div>
-                        <div class="pan-labels">
-                            <span>L 100%</span>
-                            <span class="pan-center-mark">CENTER</span>
-                            <span>R 100%</span>
-                        </div>
-                    </div>
-
-                    <div class="control-card toggle-card">
-                        <div class="toggle-meta">
-                            <span class="ctrl-label">
-                                <span class="ctrl-icon-dot"></span>
-                                REVERB EFFECT
-                            </span>
-                            <span class="toggle-desc">Atmospheric Room Reflex</span>
-                        </div>
-                        <label class="switch" for="reverb">
-                            <input type="checkbox" id="reverb">
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
-
-                    <div class="control-card">
-                        <div class="card-head">
-                            <label for="tremolo" class="ctrl-label">
-                                <span class="ctrl-icon-dot"></span>
-                                TREMOLO
-                            </label>
-                            <div class="lcd-badge" id="tremoloVal">0%</div>
-                        </div>
-                        <div class="slider-groove">
-                            <input type="range" id="tremolo" min="0" max="100" step="1" value="0">
+                            <input type="range" id="l2-treble" min="-20" max="40" step="1" value="2">
                         </div>
                     </div>
 
                     <div class="control-card">
                         <div class="card-head">
-                            <label for="flanger" class="ctrl-label">
-                                <span class="ctrl-icon-dot"></span>
-                                FLANGER
+                            <label for="l2-deep" class="ctrl-label">
+                                <span class="ctrl-icon-dot dot-crimson"></span>
+                                DEEP VOICE (PITCH)
                             </label>
-                            <div class="lcd-badge" id="flangerVal">0%</div>
+                            <div class="lcd-badge badge-crimson" id="l2-deepVal">0%</div>
                         </div>
                         <div class="slider-groove">
-                            <input type="range" id="flanger" min="0" max="100" step="1" value="0">
+                            <input type="range" id="l2-deep" min="0" max="100" step="1" value="0">
                         </div>
                     </div>
-                </div>
 
-
-
-                <div class="tab-content" id="counters">
-                    <div class="vst-sync-bar">
-                        <button class="vst-btn" id="sync-vst-btn">
-                            <span class="vst-btn-glow"></span>
-                            <span class="vst-btn-text">SCAN PLUGINS</span>
-                        </button>
-                        <span class="vst-status-text" id="vst-count-status">0 plugins</span>
+                    <div class="control-card">
+                        <div class="card-head">
+                            <label for="l2-kid" class="ctrl-label">
+                                <span class="ctrl-icon-dot dot-crimson"></span>
+                                KID VOICE (PITCH)
+                            </label>
+                            <div class="lcd-badge badge-crimson" id="l2-kidVal">0%</div>
+                        </div>
+                        <div class="slider-groove">
+                            <input type="range" id="l2-kid" min="0" max="100" step="1" value="0">
+                        </div>
                     </div>
-                    <div id="vst-list"></div>
+
+                    <div class="control-card">
+                        <div class="card-head">
+                            <label for="l2-distort" class="ctrl-label">
+                                <span class="ctrl-icon-dot dot-crimson"></span>
+                                DISTORTION DRIVE
+                            </label>
+                            <div class="lcd-badge badge-crimson" id="l2-distortVal">0</div>
+                        </div>
+                        <div class="slider-groove">
+                            <input type="range" id="l2-distort" min="0" max="100" step="1" value="0">
+                        </div>
+                    </div>
+
+                    <div class="control-card">
+                        <div class="card-head">
+                            <label for="l2-reverb" class="ctrl-label">
+                                <span class="ctrl-icon-dot dot-crimson"></span>
+                                ATMOSPHERIC REVERB
+                            </label>
+                            <div class="lcd-badge badge-crimson" id="l2-reverbVal">0%</div>
+                        </div>
+                        <div class="slider-groove">
+                            <input type="range" id="l2-reverb" min="0" max="100" step="1" value="0">
+                        </div>
+                    </div>
                 </div>
             </div>
 

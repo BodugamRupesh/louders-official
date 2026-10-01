@@ -65,7 +65,7 @@ const LOUDAPI = (() => {
         }
 
         function handleHttpError(response, payload) {
-            if (response.status === 401 && !endpoint.includes('/auth/login')) {
+            if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/me')) {
                 clearToken();
                 window.dispatchEvent(new CustomEvent('loud-unauthorized'));
             } else if (response.status === 403) {

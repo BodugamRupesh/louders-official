@@ -8,6 +8,7 @@ Handles:
 - License retrieval for customers
 """
 
+import logging
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
@@ -18,10 +19,14 @@ from app.exceptions import (
     InvalidDataError,
 )
 from app.models import Customer, License, Device, ActivityLog
+from app.utils.datetime_utils import get_current_time
+
+logger = logging.getLogger(__name__)
 
 
 class CustomerService:
     """Service for handling customer operations."""
+
 
     @staticmethod
     def _validate_name(name: str) -> str:
@@ -214,13 +219,17 @@ class CustomerService:
     def delete_customer(
         db: Session,
         customer_id: int,
+        admin_username: str | None = None,
+        admin_id: int | None = None,
     ) -> bool:
         """
-        Delete a customer.
+        Delete a customer and safely clean up their associated records.
 
         Args:
             db: SQLAlchemy database session.
             customer_id: Customer ID.
+            admin_username: Optional username of admin executing deletion.
+            admin_id: Optional ID of admin executing deletion.
 
         Returns:
             True if deleted successfully.
@@ -230,6 +239,9 @@ class CustomerService:
                 db,
                 customer_id,
             )
+
+            customer_email = customer.email
+            customer_name = customer.name
 
             # Explicitly clean up all associated licenses, devices, and activity logs
             licenses = db.query(License).filter(License.customer_id == customer.id).all()
@@ -241,6 +253,16 @@ class CustomerService:
             db.delete(customer)
             db.commit()
 
+            logger.info(
+                "Customer deleted successfully: customer_id=%s | name='%s' | email='%s' | admin='%s' (id=%s) | timestamp=%s",
+                customer_id,
+                customer_name,
+                customer_email,
+                admin_username or "system",
+                admin_id,
+                get_current_time().isoformat(),
+            )
+
             return True
 
         except CustomerNotFoundError:
@@ -251,6 +273,7 @@ class CustomerService:
             raise DatabaseError(
                 f"Failed to delete customer: {exc}"
             ) from exc
+
 
     @staticmethod
     def list_customers(

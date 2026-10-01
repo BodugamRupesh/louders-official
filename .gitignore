@@ -24,7 +24,10 @@ env/
 
 # Database files
 *.db
+*.db-journal
 *.sqlite*
+*.backup
+*.safe_backup
 
 # Logs
 *.log

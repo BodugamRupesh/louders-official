@@ -167,10 +167,13 @@ const LOUDApp = (() => {
         }, 3500);
     }
 
+    let isInitialBootComplete = false;
+
     // Simulated Boot Scan Logger
     function simulateBootLoader(callback) {
         const consoleLog = document.getElementById('loader-console-log');
         if (!consoleLog) {
+            isInitialBootComplete = true;
             callback();
             return;
         }
@@ -193,15 +196,21 @@ const LOUDApp = (() => {
                 consoleLog.appendChild(line);
                 consoleLog.scrollTop = consoleLog.scrollHeight;
                 index++;
-                setTimeout(printNext, 180);
+                setTimeout(printNext, 100);
             } else {
                 setTimeout(() => {
-                    el.loader.style.opacity = '0';
-                    setTimeout(() => {
-                        el.loader.style.display = 'none';
+                    if (el.loader) {
+                        el.loader.style.opacity = '0';
+                        setTimeout(() => {
+                            el.loader.style.display = 'none';
+                            isInitialBootComplete = true;
+                            callback();
+                        }, 300);
+                    } else {
+                        isInitialBootComplete = true;
                         callback();
-                    }, 500);
-                }, 300);
+                    }
+                }, 150);
             }
         }
         
@@ -209,12 +218,24 @@ const LOUDApp = (() => {
     }
 
     function toggleLoader(show) {
+        if (!isInitialBootComplete) {
+            if (el.loader) {
+                if (show) {
+                    el.loader.style.display = 'flex';
+                    el.loader.style.opacity = '1';
+                } else {
+                    el.loader.style.opacity = '0';
+                    setTimeout(() => el.loader.style.display = 'none', 300);
+                }
+            }
+            return;
+        }
+        // After initial boot, do not flash full-screen black overlay.
+        // Instead, toggle subtle background activity class without blocking views.
         if (show) {
-            el.loader.style.display = 'flex';
-            el.loader.style.opacity = '1';
+            document.body.classList.add('app-busy');
         } else {
-            el.loader.style.opacity = '0';
-            setTimeout(() => el.loader.style.display = 'none', 400);
+            document.body.classList.remove('app-busy');
         }
     }
 
@@ -656,6 +677,8 @@ const LOUDApp = (() => {
     // ------------------------------------------
     // D. CUSTOMERS PANE RENDER
     // ------------------------------------------
+    let pendingDeleteCustomerId = null;
+
     async function renderCustomersPane() {
         toggleLoader(true);
         try {
@@ -670,26 +693,61 @@ const LOUDApp = (() => {
                 document.getElementById('customers-table-empty').style.display = 'none';
                 customers.forEach(c => {
                     const tr = document.createElement('tr');
+                    tr.id = `customer-row-${c.id}`;
                     const dateStr = new Date(c.created_at).toLocaleDateString();
+
+                    // License key display
+                    let licenseDisplay = '<span style="color:var(--text-secondary); font-size:0.85rem;">None</span>';
+                    if (c.primary_license_key) {
+                        licenseDisplay = `
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <span class="font-mono text-cyan" style="font-size:0.82rem; font-weight:600; letter-spacing:0.5px;">${escapeHTML(c.primary_license_key)}</span>
+                                <button class="btn-action-icon" onclick="copyText('${escapeHTML(c.primary_license_key)}')" title="Copy License Key" style="padding:2px; height:auto; width:auto; border:none; background:transparent;">
+                                    <i data-lucide="copy" style="width:13px; height:13px; color:var(--text-secondary);"></i>
+                                </button>
+                            </div>
+                        `;
+                    }
+
+                    // Status display
+                    const licStatus = (c.primary_license_status || 'unlicensed').toLowerCase();
+                    const statusClass = (licStatus === 'active') ? 'active' : (licStatus === 'suspended') ? 'suspended' : (licStatus === 'revoked') ? 'revoked' : (licStatus === 'expired') ? 'expired' : '';
+                    const statusDisplay = `<span class="status-pill ${statusClass}" style="text-transform:capitalize; font-size:0.75rem; padding: 3px 8px;">${escapeHTML(licStatus)}</span>`;
+
+                    // Expiry display
+                    let expiryDisplay = '<span style="color:var(--text-secondary); font-size:0.85rem;">N/A</span>';
+                    if (c.primary_license_expiry) {
+                        expiryDisplay = `<span class="font-mono" style="font-size:0.85rem;">${new Date(c.primary_license_expiry).toLocaleDateString()}</span>`;
+                    }
+
+                    // Device display
+                    let deviceDisplay = '<span style="color:var(--text-secondary); font-size:0.85rem;">0 / 1</span>';
+                    if (c.primary_license_key) {
+                        deviceDisplay = `<span class="font-mono" style="font-size:0.85rem;">${c.primary_license_devices || 0} / ${c.primary_license_max_devices || 1}</span>`;
+                    }
 
                     tr.innerHTML = `
                         <td>
-                            <div style="font-weight:600; font-size:0.95rem;">${escapeHTML(c.name)}</div>
-                            <div style="color:var(--text-secondary); font-size:0.8rem;">${escapeHTML(c.email)}</div>
-                        </td>
-                        <td class="font-mono">${escapeHTML(c.phone || 'None')}</td>
-                        <td class="font-mono">${dateStr}</td>
-                        <td>
-                            <button class="btn btn-secondary btn-sm" onclick="viewCustomerDetails(${c.id})">
-                                View Licenses
-                            </button>
+                            <div style="font-weight:600; font-size:0.95rem; color:var(--text-primary);">${escapeHTML(c.name)}</div>
+                            ${c.phone ? `<div style="color:var(--text-secondary); font-size:0.75rem;">${escapeHTML(c.phone)}</div>` : ''}
                         </td>
                         <td>
-                            <div class="actions-cell">
+                            <div class="font-mono" style="font-size:0.85rem; color:var(--text-secondary);">${escapeHTML(c.email)}</div>
+                        </td>
+                        <td>${licenseDisplay}</td>
+                        <td>${statusDisplay}</td>
+                        <td>${expiryDisplay}</td>
+                        <td>${deviceDisplay}</td>
+                        <td class="font-mono" style="font-size:0.85rem;">${dateStr}</td>
+                        <td>
+                            <div class="actions-cell" style="display:flex; align-items:center; gap:6px;">
+                                <button class="btn btn-secondary btn-sm" onclick="viewCustomerDetails(${c.id})" title="View Customer Details and Licenses" style="padding: 4px 8px; font-size: 0.8rem; display:inline-flex; align-items:center; gap:4px;">
+                                    <i data-lucide="eye" style="width:13px; height:13px;"></i> View
+                                </button>
                                 <button class="btn-action-icon edit" onclick="editCustomer(${c.id})" title="Edit Customer">
                                     <i data-lucide="edit-3"></i>
                                 </button>
-                                <button class="btn-action-icon delete" onclick="deleteCustomer(${c.id}, '${escapeHTML(c.name).replace(/'/g, "\\'")}')" title="Delete Customer" style="color:var(--status-revoked);">
+                                <button class="btn-action-icon delete" onclick="promptDeleteCustomer(${c.id}, '${escapeHTML(c.name).replace(/'/g, "\\'")}', '${escapeHTML(c.email).replace(/'/g, "\\'")}')" title="Delete Customer" style="color:var(--color-danger);">
                                     <i data-lucide="trash-2"></i>
                                 </button>
                             </div>
@@ -699,10 +757,67 @@ const LOUDApp = (() => {
                 });
                 if (window.lucide) lucide.createIcons();
             }
+        } catch (err) {
+            console.error('Failed to load customers:', err);
+            showToast('Failed to load customers: ' + (err.message || 'Unknown error'), 'error');
+            const tbody = document.querySelector('#customers-table tbody');
+            if (tbody) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 2rem; color: var(--color-danger);">Error loading customer records. Please check server connection.</td></tr>`;
+            }
         } finally {
             toggleLoader(false);
         }
     }
+
+    window.promptDeleteCustomer = function(id, name = '', email = '') {
+        pendingDeleteCustomerId = id;
+        const nameEl = document.getElementById('delete-customer-target-name');
+        const emailEl = document.getElementById('delete-customer-target-email');
+        const idEl = document.getElementById('delete-customer-target-id');
+
+        if (nameEl) nameEl.textContent = name || 'Customer';
+        if (emailEl) emailEl.textContent = email || '';
+        if (idEl) idEl.textContent = `Customer ID: #${id}`;
+
+        openModal('modal-delete-customer');
+        if (window.lucide) lucide.createIcons();
+    };
+
+    window.confirmDeleteCustomer = async function() {
+        if (!pendingDeleteCustomerId) return;
+        const targetId = pendingDeleteCustomerId;
+        const btn = document.getElementById('btn-confirm-delete-customer');
+        if (btn) btn.disabled = true;
+
+        try {
+            await LOUDAPI.customers.delete(targetId);
+            showToast('Customer deleted successfully.');
+            closeModal('modal-delete-customer');
+            closeModal('modal-customer');
+            closeModal('modal-customer-details');
+
+            // In-place UI update without full page reload
+            const row = document.getElementById(`customer-row-${targetId}`);
+            if (row) {
+                row.remove();
+            }
+
+            const tbody = document.querySelector('#customers-table tbody');
+            if (tbody && tbody.children.length === 0) {
+                const emptyEl = document.getElementById('customers-table-empty');
+                if (emptyEl) emptyEl.style.display = 'block';
+            }
+        } catch(e) {
+            showToast(e.message || 'Failed to delete customer', 'error');
+        } finally {
+            if (btn) btn.disabled = false;
+            pendingDeleteCustomerId = null;
+        }
+    };
+
+    window.deleteCustomer = function(id, name = '') {
+        promptDeleteCustomer(id, name);
+    };
 
     window.editCustomer = async function(id) {
         try {
@@ -719,30 +834,13 @@ const LOUDApp = (() => {
                 if (delBtn) {
                     delBtn.style.display = 'inline-flex';
                     delBtn.onclick = () => {
-                        deleteCustomer(c.id, c.name);
+                        promptDeleteCustomer(c.id, c.name, c.email);
                     };
                 }
 
                 document.getElementById('customer-modal-title').innerText = 'Edit Customer';
                 openModal('modal-customer');
             }
-        } catch(e) {
-            showToast(e.message, 'error');
-        }
-    };
-
-    window.deleteCustomer = async function(id, name = '') {
-        const label = name ? `customer "${name}"` : 'this customer';
-        if (!confirm(`Are you sure you want to permanently delete ${label}? All associated licenses and device bindings will also be removed. This cannot be undone.`)) {
-            return;
-        }
-
-        try {
-            await LOUDAPI.customers.delete(id);
-            showToast('Customer deleted successfully.');
-            closeModal('modal-customer');
-            closeModal('modal-customer-details');
-            renderCustomersPane();
         } catch(e) {
             showToast(e.message, 'error');
         }
@@ -1027,11 +1125,9 @@ const LOUDApp = (() => {
                         <td class="font-mono">${escapeHTML(d.extension_version || '1.0.0')}</td>
                         <td class="font-mono" style="font-size:0.8rem;">${lastSeen}</td>
                         <td>
-                            <span class="status-pill ${d.status === 'online' ? 'active' : d.status === 'disabled' ? 'disabled' : 'offline'}">${escapeHTML(d.status)}</span>
-                        </td>
-                        <td>
-                            ${d.status !== 'disabled' ? `<button class="btn btn-warning btn-sm" onclick="disableDevice(${d.id})" style="padding: 0.15rem 0.4rem; font-size: 0.75rem;">Disable</button>` : `<button class="btn btn-success btn-sm" onclick="reactivateDevice(${d.id})" style="padding: 0.15rem 0.4rem; font-size: 0.75rem;">Reactivate</button>`}
-                            <button class="btn btn-danger btn-sm" onclick="debindDevice(${id}, '${d.device_uuid}')" style="padding: 0.15rem 0.4rem; font-size: 0.75rem; margin-left:0.25rem;">Unbind</button>
+                            <button class="btn btn-danger btn-sm" onclick="debindDevice(${id}, '${d.device_uuid}')" style="padding: 0.15rem 0.4rem; font-size: 0.75rem;">
+                                Unbind
+                            </button>
                         </td>
                     `;
                     tbody.appendChild(tr);
@@ -1063,34 +1159,6 @@ const LOUDApp = (() => {
             }
 
             openModal('modal-license-details');
-        } catch(e) {
-            showToast(e.message, 'error');
-        }
-    };
-
-    window.disableDevice = async function(deviceId) {
-        if (!confirm('Disable this device? It will no longer be able to verify until reactivated.')) {
-            return;
-        }
-        try {
-            await LOUDAPI.devices.disable(deviceId);
-            showToast('Device disabled successfully.');
-            renderDevicesPane();
-            renderLicensesPane();
-        } catch(e) {
-            showToast(e.message, 'error');
-        }
-    };
-
-    window.reactivateDevice = async function(deviceId) {
-        if (!confirm('Reactivate this device? It will be allowed to verify again.')) {
-            return;
-        }
-        try {
-            await LOUDAPI.devices.reactivate(deviceId);
-            showToast('Device reactivated successfully.');
-            renderDevicesPane();
-            renderLicensesPane();
         } catch(e) {
             showToast(e.message, 'error');
         }
@@ -1216,21 +1284,17 @@ const LOUDApp = (() => {
                 devices.forEach(d => {
                     const tr = document.createElement('tr');
                     const lastSeen = new Date(d.last_seen).toLocaleString();
-                    const nameLabel = d.device_name ? `${escapeHTML(d.device_name)} · ` : '';
-                    const statusClass = d.status === 'online' ? 'active' : d.status === 'disabled' ? 'disabled' : 'offline';
 
                     tr.innerHTML = `
                         <td class="font-mono text-cyan" style="font-size:0.8rem;">${d.device_uuid}</td>
                         <td class="font-mono">License ID: ${d.license_id}</td>
-                        <td>${nameLabel}${escapeHTML(d.browser)} / ${escapeHTML(d.operating_system || 'Unknown')}</td>
+                        <td>${escapeHTML(d.browser)} / ${escapeHTML(d.operating_system || 'Unknown')}</td>
                         <td class="font-mono">${escapeHTML(d.extension_version || '1.0.0')}</td>
                         <td class="font-mono" style="font-size:0.8rem;">${lastSeen}</td>
                         <td>
-                            <span class="status-pill ${statusClass}">${escapeHTML(d.status)}</span>
-                            <div style="margin-top:0.5rem; display:flex; gap:0.25rem; flex-wrap:wrap;">
-                                ${d.status !== 'disabled' ? `<button class="btn btn-warning btn-sm" onclick="disableDevice(${d.id})">Disable</button>` : `<button class="btn btn-success btn-sm" onclick="reactivateDevice(${d.id})">Reactivate</button>`}
-                                <button class="btn btn-danger btn-sm" onclick="debindDevice(${d.license_id}, '${d.device_uuid}')">Unbind</button>
-                            </div>
+                            <button class="btn btn-danger btn-sm" onclick="debindDevice(${d.license_id}, '${d.device_uuid}')">
+                                Unbind Node
+                            </button>
                         </td>
                     `;
                     tbody.appendChild(tr);
@@ -1693,6 +1757,12 @@ const LOUDApp = (() => {
                 showToast(err.message, 'error');
             }
         });
+
+        // Delete Customer confirmation button click handler
+        const btnConfirmDelCustomer = document.getElementById('btn-confirm-delete-customer');
+        if (btnConfirmDelCustomer) {
+            btnConfirmDelCustomer.addEventListener('click', confirmDeleteCustomer);
+        }
 
         // 6. License Issue triggers
         const triggerLicenseIssue = () => {

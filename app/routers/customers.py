@@ -2,6 +2,7 @@
 Customers Router for LOUD Platform Licensing System.
 """
 
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, status
@@ -18,8 +19,10 @@ from app.schemas import (
     SuccessResponse,
 )
 from app.services.customer_service import CustomerService
+from app.utils.datetime_utils import get_current_time
 from app.utils.responses import success_response
 
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/api/v1/customers",
@@ -28,11 +31,31 @@ router = APIRouter(
 
 
 def _serialize_customer(customer: Customer) -> dict:
-    """Serialize a Customer ORM model."""
-    return CustomerResponse.model_validate(
+    """Serialize a Customer ORM model with primary license summary."""
+    data = CustomerResponse.model_validate(
         customer,
         from_attributes=True,
     ).model_dump()
+
+    licenses = list(customer.licenses) if customer.licenses else []
+    data["license_count"] = len(licenses)
+    if licenses:
+        # Latest active license preferred
+        active_lics = [l for l in licenses if l.status == "active"]
+        primary = active_lics[-1] if active_lics else licenses[-1]
+        data["primary_license_key"] = primary.license_key
+        data["primary_license_status"] = primary.status
+        data["primary_license_expiry"] = primary.expires_at.isoformat() if primary.expires_at else None
+        data["primary_license_devices"] = len(primary.devices) if primary.devices else 0
+        data["primary_license_max_devices"] = primary.plan.max_devices if primary.plan else 1
+    else:
+        data["primary_license_key"] = None
+        data["primary_license_status"] = "unlicensed"
+        data["primary_license_expiry"] = None
+        data["primary_license_devices"] = 0
+        data["primary_license_max_devices"] = 0
+
+    return data
 
 
 def _serialize_license(license_obj: License) -> dict:
@@ -41,6 +64,7 @@ def _serialize_license(license_obj: License) -> dict:
         license_obj,
         from_attributes=True,
     ).model_dump()
+
 
 
 @router.get(
@@ -170,7 +194,19 @@ async def delete_customer(
     db: Annotated[Session, Depends(get_db)],
     current_admin: Annotated[AdminUser, Depends(require_admin_or_owner)],
 ) -> SuccessResponse:
-    CustomerService.delete_customer(db, customer_id)
+    CustomerService.delete_customer(
+        db,
+        customer_id,
+        admin_username=current_admin.username,
+        admin_id=current_admin.id,
+    )
+    logger.info(
+        "Admin '%s' (id=%s) deleted customer id=%s at %s - Result: success",
+        current_admin.username,
+        current_admin.id,
+        customer_id,
+        get_current_time().isoformat(),
+    )
     return success_response(
         "Customer deleted successfully.",
         data={"customer_id": customer_id},
