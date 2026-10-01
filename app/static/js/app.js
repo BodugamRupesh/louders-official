@@ -762,7 +762,7 @@ const LOUDApp = (() => {
                                 <button class="btn-action-icon edit" onclick="editCustomer(${c.id})" title="Edit Customer">
                                     <i data-lucide="edit-3"></i>
                                 </button>
-                                <button class="btn-action-icon delete" onclick="promptDeleteCustomer(${c.id}, '${escapeHTML(c.name).replace(/'/g, "\\'")}', '${escapeHTML(c.email).replace(/'/g, "\\'")}')" title="Delete Customer" style="color:var(--color-danger);">
+                                <button class="btn-action-icon delete" onclick="promptDeleteCustomer(${c.id}, '${escapeHTML(c.name).replace(/'/g, "\\'")}', '${escapeHTML(c.email).replace(/'/g, "\\'")}', ${c.license_count || 0}, ${c.primary_license_devices || 0})" title="Delete Customer" style="color:var(--color-danger);">
                                     <i data-lucide="trash-2"></i>
                                 </button>
                             </div>
@@ -784,25 +784,34 @@ const LOUDApp = (() => {
         }
     }
 
-    window.promptDeleteCustomer = function(id, name = '', email = '') {
+    window.promptDeleteCustomer = function(id, name = '', email = '', licenseCount = 0, deviceCount = 0) {
         pendingDeleteCustomerId = id;
         const nameEl = document.getElementById('delete-customer-target-name');
         const emailEl = document.getElementById('delete-customer-target-email');
         const idEl = document.getElementById('delete-customer-target-id');
+        const licEl = document.getElementById('delete-customer-target-licenses');
+        const devEl = document.getElementById('delete-customer-target-devices');
 
         if (nameEl) nameEl.textContent = name || 'Customer';
         if (emailEl) emailEl.textContent = email || '';
-        if (idEl) idEl.textContent = `Customer ID: #${id}`;
+        if (idEl) idEl.textContent = `ID: #${id}`;
+        if (licEl) licEl.textContent = `Licenses: ${licenseCount}`;
+        if (devEl) devEl.textContent = `Devices: ${deviceCount}`;
 
         openModal('modal-delete-customer');
         if (window.lucide) lucide.createIcons();
     };
 
+    let isDeletingCustomer = false;
     window.confirmDeleteCustomer = async function() {
-        if (!pendingDeleteCustomerId) return;
+        if (!pendingDeleteCustomerId || isDeletingCustomer) return;
         const targetId = pendingDeleteCustomerId;
         const btn = document.getElementById('btn-confirm-delete-customer');
-        if (btn) btn.disabled = true;
+        isDeletingCustomer = true;
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-sm" style="display:inline-block; width:13px; height:13px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.6s linear infinite; margin-right:6px;"></span> Deleting...';
+        }
 
         try {
             await LOUDAPI.customers.delete(targetId);
@@ -825,13 +834,18 @@ const LOUDApp = (() => {
         } catch(e) {
             showToast(e.message || 'Failed to delete customer', 'error');
         } finally {
-            if (btn) btn.disabled = false;
+            isDeletingCustomer = false;
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="trash-2" style="width:14px; height:14px;"></i> Delete Customer';
+                if (window.lucide) lucide.createIcons();
+            }
             pendingDeleteCustomerId = null;
         }
     };
 
-    window.deleteCustomer = function(id, name = '') {
-        promptDeleteCustomer(id, name);
+    window.deleteCustomer = function(id, name = '', email = '', licenseCount = 0, deviceCount = 0) {
+        promptDeleteCustomer(id, name, email, licenseCount, deviceCount);
     };
 
     window.editCustomer = async function(id) {

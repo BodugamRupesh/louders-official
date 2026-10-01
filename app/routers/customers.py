@@ -205,10 +205,10 @@ async def delete_customer(
         admin_id=current_admin.id,
     )
     logger.info(
-        "Admin '%s' (id=%s) deleted customer id=%s at %s - Result: success",
-        current_admin.username,
-        current_admin.id,
+        "action=customer_deleted | customer_id=%s | admin_id=%s | admin_username='%s' | timestamp=%s",
         customer_id,
+        current_admin.id,
+        current_admin.username,
         get_current_time().isoformat(),
     )
     return success_response(
