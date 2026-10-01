@@ -6,8 +6,6 @@ __pycache__
 .mypy_cache
 .vscode
 .idea
-*.db
 *.db-journal
-*.sqlite*
-licenses.db*
 *.backup
+*.safe_backup

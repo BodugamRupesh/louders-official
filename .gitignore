@@ -24,6 +24,7 @@ env/
 
 # Database files
 *.db
+!licenses.db
 *.db-journal
 *.sqlite*
 *.backup

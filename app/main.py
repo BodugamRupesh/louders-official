@@ -30,7 +30,7 @@ from app.exceptions import (
     ResourceNotFoundError,
     ValidationException,
 )
-from app.models import AdminUser, Product
+from app.models import AdminUser, Plan, Product
 from app.routers import (
     admin,
     analytics,
@@ -51,14 +51,17 @@ logger = logging.getLogger(__name__)
 
 
 def _validate_database_ready() -> None:
-    """Ensure the database is available before serving requests."""
+    """Ensure the database is available and all tables exist safely before serving requests."""
     try:
+        from app.database import Base, engine
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
+        # Non-destructive table creation: CREATE TABLE IF NOT EXISTS
+        Base.metadata.create_all(bind=engine)
     except SQLAlchemyError as exc:
         raise RuntimeError(
             "Database is unavailable during startup. "
-            "Ensure the database server is running and migrations have been applied."
+            "Ensure the database server is running."
         ) from exc
 
 
@@ -131,6 +134,29 @@ def _ensure_default_product() -> None:
         db.close()
 
 
+def _ensure_default_plans() -> None:
+    """Ensure standard plans exist if table is empty."""
+    db = SessionLocal()
+    try:
+        plan_count = db.query(Plan).count()
+        if plan_count == 0:
+            default_plans = [
+                Plan(id=1, name="Trial", duration_days=1, max_devices=1, price=0.0, status="active"),
+                Plan(id=2, name="Weekly", duration_days=7, max_devices=1, price=5.0, status="active"),
+                Plan(id=3, name="Monthly", duration_days=30, max_devices=2, price=15.0, status="active"),
+                Plan(id=4, name="Lifetime", duration_days=99999, max_devices=5, price=99.0, status="active"),
+                Plan(id=5, name="Ultra", duration_days=90, max_devices=3, price=6.0, status="active"),
+            ]
+            db.add_all(default_plans)
+            db.commit()
+            logger.info("Default billing plans initialized successfully.")
+    except SQLAlchemyError as exc:
+        db.rollback()
+        logger.warning("Failed to initialize default plans: %s", exc)
+    finally:
+        db.close()
+
+
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.VERSION,
@@ -147,10 +173,11 @@ app = FastAPI(
 
 @app.on_event("startup")
 async def startup_event():
-    """Validate database connectivity, seed initial admin, and ensure default product."""
+    """Validate database connectivity, create tables non-destructively, seed initial admin, and ensure defaults."""
     _validate_database_ready()
     _ensure_initial_admin()
     _ensure_default_product()
+    _ensure_default_plans()
     logger.info("LOUD License Server started successfully.")
 
 

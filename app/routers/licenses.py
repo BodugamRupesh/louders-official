@@ -138,7 +138,7 @@ async def reactivate_license(
 async def search_licenses(
     db: Annotated[Session, Depends(get_db)],
     current_admin: Annotated[AdminUser, Depends(get_current_admin)],
-    q: str | None = Query(None, min_length=1, description="Search query"),
+    q: str | None = Query(None, description="Search query"),
     customer_id: int | None = Query(None, ge=1, description="Filter by customer ID"),
     product_id: int | None = Query(None, ge=1, description="Filter by product ID"),
     status: str | None = Query(None, description="Filter by license status"),

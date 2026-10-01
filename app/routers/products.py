@@ -69,11 +69,14 @@ async def list_products(
     description="Search products by name or slug. Authenticated admins only.",
 )
 async def search_products(
-    q: Annotated[str, Query(..., min_length=1, description="Search query")],
     db: Annotated[Session, Depends(get_db)],
     current_admin: Annotated[AdminUser, Depends(get_current_admin)],
+    q: str | None = Query(None, description="Search query"),
 ) -> SuccessResponse:
-    products = ProductService.search_products(db, q)
+    if q and q.strip():
+        products = ProductService.search_products(db, q.strip())
+    else:
+        products = ProductService.list_products(db, active_only=False)
     return success_response(
         "Products searched successfully.",
         data={

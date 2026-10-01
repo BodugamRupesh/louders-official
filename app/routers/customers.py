@@ -101,11 +101,14 @@ async def list_customers(
     description="Search customers by name or email. Authenticated admins only.",
 )
 async def search_customers(
-    q: Annotated[str, Query(..., min_length=1, description="Search query")],
     db: Annotated[Session, Depends(get_db)],
     current_admin: Annotated[AdminUser, Depends(get_current_admin)],
+    q: str | None = Query(None, description="Search query"),
 ) -> SuccessResponse:
-    customers = CustomerService.search_customers(db, q)
+    if q and q.strip():
+        customers = CustomerService.search_customers(db, q.strip())
+    else:
+        customers = CustomerService.list_customers(db)
     return success_response(
         "Customers searched successfully.",
         data={"customers": [_serialize_customer(customer) for customer in customers]},

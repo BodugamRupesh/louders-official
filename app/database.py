@@ -42,7 +42,7 @@ if settings.DATABASE_URL.startswith("sqlite"):
         cursor.close()
 
     # Create safety backup if database exists and has data
-    db_file_path = settings.DATABASE_URL.replace("sqlite:///", "")
+    db_file_path = os.path.normpath(settings.DATABASE_URL[len("sqlite:///"):])
     if os.path.isfile(db_file_path) and os.path.getsize(db_file_path) > 0:
         backup_path = f"{db_file_path}.backup"
         try:

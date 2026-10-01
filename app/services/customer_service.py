@@ -246,8 +246,10 @@ class CustomerService:
             # Explicitly clean up all associated licenses, devices, and activity logs
             licenses = db.query(License).filter(License.customer_id == customer.id).all()
             for lic in licenses:
-                db.query(Device).filter(Device.license_id == lic.id).delete()
-                db.query(ActivityLog).filter(ActivityLog.license_id == lic.id).delete()
+                for dev in list(lic.devices):
+                    db.delete(dev)
+                for act in list(lic.activity_logs):
+                    db.delete(act)
                 db.delete(lic)
 
             db.delete(customer)

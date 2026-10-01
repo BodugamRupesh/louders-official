@@ -68,9 +68,12 @@ async def list_admins(
 async def search_admins(
     db: Annotated[Session, Depends(get_db)],
     current_admin: Annotated[AdminUser, Depends(get_current_admin)],
-    query: str = Query(..., min_length=1, description="Search query"),
+    query: str | None = Query(None, description="Search query"),
 ) -> SuccessResponse:
-    admins = AdminService.search_admins(db, query)
+    if query and query.strip():
+        admins = AdminService.search_admins(db, query.strip())
+    else:
+        admins = AdminService.list_admins(db)
     return success_response(
         "Admins search completed successfully.",
         data={

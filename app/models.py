@@ -218,11 +218,12 @@ class License(Base):
     
     customer = relationship("Customer", back_populates="licenses")
     
-    plan = relationship("Plan", back_populates="licenses")
+    plan = relationship("Plan", back_populates="licenses", lazy="selectin")
     
     devices = relationship(
         "Device",
         back_populates="license",
+        lazy="selectin",
         cascade="all, delete-orphan"
     )
     

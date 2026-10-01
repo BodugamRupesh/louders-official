@@ -140,7 +140,22 @@ const LOUDApp = (() => {
     // ==========================================
     // 2. TOAST NOTIFICATIONS & LOADER
     // ==========================================
+    const activeToastMap = new Map();
+
     function showToast(message, type = 'success') {
+        if (!message) return;
+        const now = Date.now();
+        const lastSeen = activeToastMap.get(message);
+        if (lastSeen && now - lastSeen < 2000) {
+            return;
+        }
+        activeToastMap.set(message, now);
+        if (activeToastMap.size > 20) {
+            for (const [k, v] of activeToastMap.entries()) {
+                if (now - v > 5000) activeToastMap.delete(k);
+            }
+        }
+
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
         
@@ -150,7 +165,7 @@ const LOUDApp = (() => {
 
         toast.innerHTML = `
             <i data-lucide="${iconName}"></i>
-            <span>${message}</span>
+            <span>${escapeHTML(message)}</span>
             <div class="toast-progress-bar"></div>
         `;
         
@@ -441,17 +456,17 @@ const LOUDApp = (() => {
             const stream = document.getElementById('recent-logs-list');
             stream.innerHTML = '';
             
-            // Collect activity logs from recent licenses
+            // Collect activity logs from recent licenses in parallel
             const logArr = [];
-            for (let i = 0; i < Math.min(activeLicList.length, 5); i++) {
-                const lic = activeLicList[i];
-                try {
-                    const activity = await LOUDAPI.licenses.getActivity(lic.id);
-                    if (activity.data?.activity) {
-                        logArr.push(...activity.data.activity);
-                    }
-                } catch(e) {}
-            }
+            const recentLics = activeLicList.slice(0, 5);
+            const actResults = await Promise.all(
+                recentLics.map(lic => LOUDAPI.licenses.getActivity(lic.id).catch(() => null))
+            );
+            actResults.forEach(activity => {
+                if (activity?.data?.activity) {
+                    logArr.push(...activity.data.activity);
+                }
+            });
 
             if (logArr.length === 0) {
                 stream.innerHTML = '<div class="stream-empty">No telemetry logged.</div>';
@@ -1580,24 +1595,8 @@ const LOUDApp = (() => {
         // Global auth unauthorized interceptor
         window.addEventListener('loud-unauthorized', () => {
             currentUserProfile = null;
-            showToast('Session has ended.', 'warning');
+            showToast('Session has ended. Please log in again.', 'warning');
             window.location.hash = '#/login';
-        });
-
-        window.addEventListener('loud-forbidden', () => {
-            showToast('Access forbidden: you do not have permission to perform this action.', 'error');
-        });
-
-        window.addEventListener('loud-not-found', () => {
-            showToast('Requested resource could not be found.', 'error');
-        });
-
-        window.addEventListener('loud-validation-error', () => {
-            showToast('Validation failed. Please check your input and try again.', 'error');
-        });
-
-        window.addEventListener('loud-server-error', () => {
-            showToast('Server error occurred. Please try again later.', 'error');
         });
 
         // 1. Handle Login Form Submit

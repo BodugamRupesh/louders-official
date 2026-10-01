@@ -59,7 +59,7 @@ const LOUDAPI = (() => {
             const message = extractErrorMessage(payload) || response.statusText || 'An error occurred during request execution.';
             const apiError = new Error(message);
             apiError.success = payload?.success ?? false;
-            apiError.error_code = payload?.error_code ?? null;
+            apiError.error_code = payload?.error_code || payload?.error?.code || (response.status >= 500 ? 'DATABASE_ERROR' : `HTTP_${response.status}`);
             apiError.status = response.status;
             apiError.payload = payload;
             return apiError;
@@ -69,14 +69,6 @@ const LOUDAPI = (() => {
             if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/me')) {
                 clearToken();
                 window.dispatchEvent(new CustomEvent('loud-unauthorized'));
-            } else if (response.status === 403) {
-                window.dispatchEvent(new CustomEvent('loud-forbidden'));
-            } else if (response.status === 404) {
-                window.dispatchEvent(new CustomEvent('loud-not-found'));
-            } else if (response.status === 422) {
-                window.dispatchEvent(new CustomEvent('loud-validation-error'));
-            } else if (response.status === 500) {
-                window.dispatchEvent(new CustomEvent('loud-server-error'));
             }
 
             throw createApiError(response, payload);

@@ -122,12 +122,27 @@ class Settings:
             os.makedirs(data_dir, exist_ok=True)
             db_filename = os.path.basename(path_part) or "licenses.db"
             resolved_path = os.path.join(data_dir, db_filename)
+            repo_seed = os.path.normpath(os.path.join(self.PROJECT_ROOT, "licenses.db"))
+            if (not os.path.exists(resolved_path) or os.path.getsize(resolved_path) == 0) and os.path.exists(repo_seed) and os.path.getsize(repo_seed) > 0:
+                try:
+                    import shutil
+                    shutil.copy2(repo_seed, resolved_path)
+                except Exception:
+                    pass
             normalized_path = os.path.abspath(resolved_path).replace("\\", "/")
             return f"sqlite:///{normalized_path}"
 
         # 2. Standard Docker / Render persistent volume check
         if os.path.isdir("/app/data") and ("./licenses.db" in path_part or path_part == "licenses.db"):
-            return "sqlite:////app/data/licenses.db"
+            persistent_db = "/app/data/licenses.db"
+            repo_seed = os.path.normpath(os.path.join(self.PROJECT_ROOT, "licenses.db"))
+            if (not os.path.exists(persistent_db) or os.path.getsize(persistent_db) == 0) and os.path.exists(repo_seed) and os.path.getsize(repo_seed) > 0:
+                try:
+                    import shutil
+                    shutil.copy2(repo_seed, persistent_db)
+                except Exception:
+                    pass
+            return f"sqlite:///{persistent_db}"
 
         # 3. Resolve relative paths deterministically relative to PROJECT_ROOT
         if not os.path.isabs(path_part):

@@ -111,14 +111,17 @@ async def list_plans(
     description="Search plans by name."
 )
 async def search_plans(
-    q: Annotated[str, Query(..., min_length=1, description="Search query")],
     db: Annotated[Session, Depends(get_db)],
-    current_admin: Annotated[AdminUser, Depends(get_current_admin)]
+    current_admin: Annotated[AdminUser, Depends(get_current_admin)],
+    q: str | None = Query(None, description="Search query"),
 ) -> SuccessResponse:
     """
     Search plans by name.
     """
-    plans = PlanService.search_plans(db, q)
+    if q and q.strip():
+        plans = PlanService.search_plans(db, q.strip())
+    else:
+        plans = PlanService.list_plans(db, active_only=False)
 
     return SuccessResponse(
         success=True,
