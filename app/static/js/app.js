@@ -1916,7 +1916,7 @@ const LOUDApp = (() => {
         // Live table search filters
         setupLiveSearch('search-products-input', 'products-table', 0);
         setupLiveSearch('search-plans-input', 'plans-table', 0);
-        setupLiveSearch('search-customers-input', 'customers-table', 0);
+        setupLiveSearch('search-customers-input', 'customers-table');
         setupLiveSearch('search-devices-input', 'devices-table', 0);
         setupLiveSearch('search-admins-input', 'admins-table', 0);
 
@@ -1932,7 +1932,7 @@ const LOUDApp = (() => {
         });
     }
 
-    function setupLiveSearch(inputId, tableId, searchColIndex) {
+    function setupLiveSearch(inputId, tableId, searchColIndex = null) {
         const input = document.getElementById(inputId);
         if (!input) return;
         
@@ -1941,14 +1941,18 @@ const LOUDApp = (() => {
             const rows = document.querySelectorAll(`#${tableId} tbody tr`);
             
             rows.forEach(row => {
-                const cell = row.cells[searchColIndex];
-                if (cell) {
-                    const text = cell.innerText.toLowerCase();
-                    if (text.includes(query)) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
+                if (row.cells.length <= 1) return;
+                let text = '';
+                if (searchColIndex !== null && searchColIndex !== undefined) {
+                    const cell = row.cells[searchColIndex];
+                    text = cell ? cell.innerText.toLowerCase() : '';
+                } else {
+                    text = row.innerText.toLowerCase();
+                }
+                if (!query || text.includes(query)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
                 }
             });
         });
