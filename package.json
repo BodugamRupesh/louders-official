@@ -1,0 +1,12 @@
+{
+  "name": "louders-official",
+  "version": "2.0.0",
+  "description": "Louders Official Platform and Protected Extension Build Pipeline",
+  "scripts": {
+    "build:protected": "node build_protected.js",
+    "build": "node build_protected.js"
+  },
+  "devDependencies": {
+    "javascript-obfuscator": "^4.1.1"
+  }
+}

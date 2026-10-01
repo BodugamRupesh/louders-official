@@ -36,17 +36,28 @@
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "css": ["styles.css"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "styles.css"
+      ],
       "run_at": "document_start",
       "all_frames": false
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["inject.js", "styles.css"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "inject.js",
+        "styles.css"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ]
 }

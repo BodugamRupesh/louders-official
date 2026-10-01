@@ -15,7 +15,7 @@
     
     <div class="chassis-outer">
         <div class="container">
-            <!-- Hardware Accent Rivets -->
+            
             <div class="chassis-bolt bolt-tl"></div>
             <div class="chassis-bolt bolt-tr"></div>
             <div class="chassis-bolt bolt-bl"></div>
@@ -52,7 +52,7 @@
                 </div>
             </header>
 
-            <!-- STANDALONE LICENSE GATE VIEW (First-launch / Unlicensed Entry Point) -->
+            
             <div id="licenseGateContainer" class="license-gate-wrapper">
                 <div class="license-gate-card">
                     <div class="chassis-bolt bolt-tl"></div>
@@ -72,7 +72,7 @@
                     </div>
 
                     <div class="gate-body">
-                        <!-- Alert Box for feedback -->
+                        
                         <div class="lic-alert-box" id="gateAlertBox" style="display: none;"></div>
 
                         <div class="lic-field-group">
@@ -89,7 +89,7 @@
                             </div>
                         </div>
 
-                        <!-- Collapsible Connection Settings -->
+                        
                         <details class="lic-advanced-details">
                             <summary class="lic-advanced-summary">Server & API Settings</summary>
                             <div class="lic-advanced-content">
@@ -119,9 +119,9 @@
                 </div>
             </div>
 
-            <!-- INTERNAL LOUDERS SUITE (Gated - Only visible when valid license is verified) -->
+            
             <div id="internalSuiteContainer" class="internal-suite-wrapper" style="display: none;">
-                <!-- Dual Engine Selector Rail -->
+                
                 <div class="engine-rail">
                     <div class="engine-switch-track">
                         <button type="button" class="engine-btn active" id="engine-btn-l1" data-engine="l1">
@@ -137,11 +137,11 @@
                 </div>
             </div>
 
-            <!-- ============================================== -->
-            <!-- LOUDERS-1 VIEW                                 -->
-            <!-- ============================================== -->
+            
+            
+            
             <div class="engine-view active" id="view-l1">
-                <!-- Master Power Card for Louders-1 -->
+                
                 <div class="control-card toggle-card engine-power-card">
                     <div class="toggle-meta">
                         <span class="ctrl-label"><span class="ctrl-icon-dot"></span> LOUDERS-1 ENGINE POWER</span>
@@ -355,11 +355,11 @@
                 </div>
             </div>
 
-            <!-- ============================================== -->
-            <!-- LOUDERS-2 VIEW                                 -->
-            <!-- ============================================== -->
+            
+            
+            
             <div class="engine-view" id="view-l2" style="display: none;">
-                <!-- Master Power Card for Louders-2 -->
+                
                 <div class="control-card toggle-card engine-power-card l2-accent-card">
                     <div class="toggle-meta">
                         <span class="ctrl-label"><span class="ctrl-icon-dot dot-crimson"></span> LOUDERS-2 ENGINE POWER</span>
@@ -371,7 +371,7 @@
                     </label>
                 </div>
 
-                <!-- Live Meters Card -->
+                
                 <div class="control-card l2-meter-card">
                     <div class="card-head">
                         <span class="ctrl-label"><span class="ctrl-icon-dot dot-crimson"></span> DUAL LIVE METERS</span>
@@ -505,9 +505,9 @@
                         <span class="credit-shine">MADE WITH PUNJUU</span>
                     </div>
                 </footer>
-            </div> <!-- End of internalSuiteContainer -->
+            </div> 
 
-            <!-- Active License Details Modal (For Subscribers) -->
+            
             <div class="license-modal-backdrop" id="licenseModal" style="display: none;">
                 <div class="license-modal-card">
                     <div class="chassis-bolt bolt-tl"></div>
@@ -524,10 +524,10 @@
                     </div>
 
                     <div class="modal-body">
-                        <!-- Alert Box for feedback -->
+                        
                         <div class="lic-alert-box" id="licAlertBox" style="display: none;"></div>
 
-                        <!-- ACTIVE LICENSE VIEW -->
+                        
                         <div class="modal-view" id="licActiveView">
                             <div class="lic-active-badge-row">
                                 <span class="lic-badge-tag tag-pro">PRO ACTIVE</span>
@@ -572,7 +572,6 @@
         </div>
     </div>
 
-    <script src="licenseManager.js"></script>
     <script src="popup.js"></script>
 </body>
 </html>
