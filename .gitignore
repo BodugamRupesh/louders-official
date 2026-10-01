@@ -26,6 +26,8 @@ env/
 *.db
 !licenses.db
 *.db-journal
+*.db-wal
+*.db-shm
 *.sqlite*
 *.backup
 *.safe_backup
