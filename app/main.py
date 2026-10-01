@@ -459,7 +459,7 @@ templates = Jinja2Templates(
 @app.get("/", tags=["Root"])
 def home(request: Request):
     """Root endpoint serving the HTML dashboard/landing page."""
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request=request, name="index.html")
 
 
 @app.get("/health", tags=["Health"])
