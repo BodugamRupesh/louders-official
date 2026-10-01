@@ -1715,3 +1715,117 @@ footer {
     background: linear-gradient(90deg, #ff1a40, #ff8800, #ffe600);
 }
 
+/* ===================================================
+   STANDALONE LICENSE GATE VIEW (First-launch / Unlicensed)
+   =================================================== */
+.license-gate-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 14px 14px 14px;
+    overflow-y: auto;
+    z-index: 2;
+    animation: gateFadeIn 0.25s ease-out;
+}
+
+@keyframes gateFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.license-gate-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(180deg, #121624 0%, #0b0d16 100%);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 14px;
+    padding: 16px 14px;
+    gap: 14px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.gate-header {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-align: center;
+    align-items: center;
+}
+
+.gate-badge-row {
+    display: flex;
+    justify-content: center;
+}
+
+.gate-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    border-radius: 20px;
+    font-size: 8.5px;
+    font-weight: 800;
+    font-family: var(--font-mono);
+    color: #fca5a5;
+    letter-spacing: 1px;
+}
+
+.gate-status-badge.status-licensed {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #6ee7b7;
+}
+
+.gate-status-led {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.gate-title {
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    color: #f8fafc;
+    text-transform: uppercase;
+}
+
+.gate-desc {
+    font-size: 10px;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    max-width: 280px;
+}
+
+.gate-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.gate-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.gate-footer-status {
+    font-size: 9px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+.internal-suite-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+

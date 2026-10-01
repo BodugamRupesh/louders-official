@@ -52,10 +52,79 @@
                 </div>
             </header>
 
-            <!-- Dual Engine Selector Rail -->
-            <div class="engine-rail">
-                <div class="engine-switch-track">
-                    <button type="button" class="engine-btn active" id="engine-btn-l1" data-engine="l1">
+            <!-- STANDALONE LICENSE GATE VIEW (First-launch / Unlicensed Entry Point) -->
+            <div id="licenseGateContainer" class="license-gate-wrapper">
+                <div class="license-gate-card">
+                    <div class="chassis-bolt bolt-tl"></div>
+                    <div class="chassis-bolt bolt-tr"></div>
+                    <div class="chassis-bolt bolt-bl"></div>
+                    <div class="chassis-bolt bolt-br"></div>
+
+                    <div class="gate-header">
+                        <div class="gate-badge-row">
+                            <span class="gate-status-badge" id="gateStatusBadge">
+                                <span class="gate-status-led led-red" id="gateStatusLed"></span>
+                                <span id="gateStatusBadgeText">STATUS: NOT ACTIVATED</span>
+                            </span>
+                        </div>
+                        <h2 class="gate-title">LICENSE REQUIRED</h2>
+                        <p class="gate-desc">Enter your customer email and license key to unlock the dual audio engines.</p>
+                    </div>
+
+                    <div class="gate-body">
+                        <!-- Alert Box for feedback -->
+                        <div class="lic-alert-box" id="gateAlertBox" style="display: none;"></div>
+
+                        <div class="lic-field-group">
+                            <label for="gateCustomerEmail" class="lic-label">CUSTOMER EMAIL</label>
+                            <div class="lic-input-wrap">
+                                <input type="email" id="gateCustomerEmail" class="lic-input" placeholder="e.g. customer@example.com" autocomplete="email" spellcheck="false">
+                            </div>
+                        </div>
+
+                        <div class="lic-field-group">
+                            <label for="gateLicenseKey" class="lic-label">LICENSE KEY</label>
+                            <div class="lic-input-wrap">
+                                <input type="text" id="gateLicenseKey" class="lic-input lic-key-input" placeholder="LP-26-XXXX-XXXX-XXXX" maxlength="32" autocomplete="off" spellcheck="false">
+                            </div>
+                        </div>
+
+                        <!-- Collapsible Connection Settings -->
+                        <details class="lic-advanced-details">
+                            <summary class="lic-advanced-summary">Server & API Settings</summary>
+                            <div class="lic-advanced-content">
+                                <div class="lic-field-group">
+                                    <label for="gateServerUrl" class="lic-label">SERVER URL</label>
+                                    <input type="text" id="gateServerUrl" class="lic-input lic-input-sm" value="https://louders-official.onrender.com" spellcheck="false">
+                                </div>
+                                <div class="lic-field-group">
+                                    <label for="gateProductKey" class="lic-label">PRODUCT API KEY</label>
+                                    <input type="text" id="gateProductKey" class="lic-input lic-input-sm" value="lp_AqzVY9OZc1ZyVSYgfc-J6XLxff9lejdLtzClROBrUgU" spellcheck="false">
+                                </div>
+                            </div>
+                        </details>
+
+                        <button type="button" class="lic-action-btn" id="gateActivateBtn">
+                            <span class="btn-top">
+                                <span class="btn-led led-cyan"></span>
+                                <span class="btn-text" id="gateActivateBtnText">ACTIVATE LICENSE</span>
+                            </span>
+                            <span class="btn-depth"></span>
+                        </button>
+                    </div>
+
+                    <div class="gate-footer">
+                        <span class="gate-footer-status" id="gateFooterStatus">Status: Not Activated</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INTERNAL LOUDERS SUITE (Gated - Only visible when valid license is verified) -->
+            <div id="internalSuiteContainer" class="internal-suite-wrapper" style="display: none;">
+                <!-- Dual Engine Selector Rail -->
+                <div class="engine-rail">
+                    <div class="engine-switch-track">
+                        <button type="button" class="engine-btn active" id="engine-btn-l1" data-engine="l1">
                         <span class="engine-led led-cyan" id="l1-led-status"></span>
                         <span class="engine-name">LOUDERS-1</span>
                         <span class="engine-state-pill pill-on" id="l1-power-badge">ON</span>
@@ -427,28 +496,18 @@
                 </div>
             </div>
 
-            <!-- DSP Lock Overlay for unlicensed state -->
-            <div class="dsp-lock-overlay" id="dspLockOverlay" style="display: none;">
-                <div class="dsp-lock-card">
-                    <div class="lock-icon-wrap">
-                        <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                        </svg>
+                <footer>
+                    <div class="status-wrap">
+                        <span class="status-indicator"></span>
+                        <span class="status-text" id="footerStatusText">ACTIVE ENGINE</span>
                     </div>
-                    <div class="lock-title">DSP ENGINE LOCKED</div>
-                    <p class="lock-subtitle">Active license required to enable audio processing & VST plugins.</p>
-                    <button type="button" class="lock-activate-btn" id="lockActivateBtn">
-                        <span class="btn-top">
-                            <span class="btn-led led-cyan"></span>
-                            <span class="btn-text">ACTIVATE LICENSE</span>
-                        </span>
-                        <span class="btn-depth"></span>
-                    </button>
-                </div>
-            </div>
+                    <div class="credit-wrap">
+                        <span class="credit-shine">MADE WITH PUNJUU</span>
+                    </div>
+                </footer>
+            </div> <!-- End of internalSuiteContainer -->
 
-            <!-- License Management / Activation Modal -->
+            <!-- Active License Details Modal (For Subscribers) -->
             <div class="license-modal-backdrop" id="licenseModal" style="display: none;">
                 <div class="license-modal-card">
                     <div class="chassis-bolt bolt-tl"></div>
@@ -459,7 +518,7 @@
                     <div class="modal-header">
                         <div class="modal-title-wrap">
                             <span class="modal-tag">AUTHENTICATION</span>
-                            <h2 class="modal-title" id="modalTitle">LICENSE ACTIVATION</h2>
+                            <h2 class="modal-title" id="modalTitle">SUBSCRIPTION DETAILS</h2>
                         </div>
                         <button type="button" class="modal-close-btn" id="modalCloseBtn" title="Close">✕</button>
                     </div>
@@ -468,50 +527,8 @@
                         <!-- Alert Box for feedback -->
                         <div class="lic-alert-box" id="licAlertBox" style="display: none;"></div>
 
-                        <!-- ACTIVATION VIEW -->
-                        <div class="modal-view" id="licActivateView">
-                            <p class="lic-desc">Enter your customer email and license key to link this browser to your subscription.</p>
-
-                            <div class="lic-field-group">
-                                <label for="licEmail" class="lic-label">CUSTOMER EMAIL</label>
-                                <div class="lic-input-wrap">
-                                    <input type="email" id="licEmail" class="lic-input" placeholder="e.g. hanzoobangladesh@gmail.com" autocomplete="email" spellcheck="false">
-                                </div>
-                            </div>
-
-                            <div class="lic-field-group">
-                                <label for="licKey" class="lic-label">LICENSE KEY</label>
-                                <div class="lic-input-wrap">
-                                    <input type="text" id="licKey" class="lic-input lic-key-input" placeholder="LP-26-XXXX-XXXX-XXXX" maxlength="32" autocomplete="off" spellcheck="false">
-                                </div>
-                            </div>
-
-                            <!-- Collapsible Connection Settings -->
-                            <details class="lic-advanced-details">
-                                <summary class="lic-advanced-summary">Server & API Settings</summary>
-                                <div class="lic-advanced-content">
-                                    <div class="lic-field-group">
-                                        <label for="licServerUrl" class="lic-label">SERVER URL</label>
-                                        <input type="text" id="licServerUrl" class="lic-input lic-input-sm" value="https://louders-official.onrender.com" spellcheck="false">
-                                    </div>
-                                    <div class="lic-field-group">
-                                        <label for="licProductKey" class="lic-label">PRODUCT API KEY</label>
-                                        <input type="text" id="licProductKey" class="lic-input lic-input-sm" value="lp_AqzVY9OZc1ZyVSYgfc-J6XLxff9lejdLtzClROBrUgU" spellcheck="false">
-                                    </div>
-                                </div>
-                            </details>
-
-                            <button type="button" class="lic-action-btn" id="licSubmitActivateBtn">
-                                <span class="btn-top">
-                                    <span class="btn-led led-cyan"></span>
-                                    <span class="btn-text" id="licSubmitBtnText">ACTIVATE DEVICE</span>
-                                </span>
-                                <span class="btn-depth"></span>
-                            </button>
-                        </div>
-
                         <!-- ACTIVE LICENSE VIEW -->
-                        <div class="modal-view" id="licActiveView" style="display: none;">
+                        <div class="modal-view" id="licActiveView">
                             <div class="lic-active-badge-row">
                                 <span class="lic-badge-tag tag-pro">PRO ACTIVE</span>
                                 <span class="lic-expiry-tag" id="licExpiryTag">Valid</span>
@@ -552,16 +569,6 @@
                     </div>
                 </div>
             </div>
-
-            <footer>
-                <div class="status-wrap">
-                    <span class="status-indicator"></span>
-                    <span class="status-text" id="footerStatusText">ACTIVE ENGINE</span>
-                </div>
-                <div class="credit-wrap">
-                    <span class="credit-shine">MADE WITH PUNJUU</span>
-                </div>
-            </footer>
         </div>
     </div>
 
