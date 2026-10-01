@@ -456,10 +456,19 @@ templates = Jinja2Templates(
 # Endpoints
 # --------------------------------------------------------------------
 
+def _render_index(request: Request):
+    """Render index.html with backward- and forward-compatible Starlette TemplateResponse."""
+    context = {"request": request}
+    try:
+        return templates.TemplateResponse(request=request, name="index.html", context=context)
+    except TypeError:
+        return templates.TemplateResponse("index.html", context)
+
+
 @app.get("/", tags=["Root"])
 def home(request: Request):
     """Root endpoint serving the HTML dashboard/landing page."""
-    return templates.TemplateResponse(request=request, name="index.html")
+    return _render_index(request)
 
 
 @app.get("/health", tags=["Health"])
