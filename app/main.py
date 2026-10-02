@@ -207,6 +207,28 @@ def _ensure_baseline_data_migrated() -> None:
                         )
 
                     row_dicts = [dict(zip(col_names, r)) for r in rows]
+
+                    if table_name == "admin_users":
+                        # Safely handle admin_users conflicts: skip rows where id OR username already exists
+                        existing_admins = dest_conn.execute(
+                            text("SELECT id, username FROM admin_users")
+                        ).fetchall()
+                        existing_ids = {r[0] for r in existing_admins}
+                        existing_usernames = {r[1] for r in existing_admins}
+                        filtered_rows = []
+                        for r in row_dicts:
+                            if r.get("id") in existing_ids or r.get("username") in existing_usernames:
+                                continue
+                            existing_ids.add(r.get("id"))
+                            existing_usernames.add(r.get("username"))
+                            filtered_rows.append(r)
+                        row_dicts = filtered_rows
+                        if not row_dicts:
+                            logger.info(
+                                "Baseline rows in 'admin_users' already exist by ID or username; skipping insertion."
+                            )
+                            continue
+
                     dest_conn.execute(insert_stmt, row_dicts)
                     logger.info("Migrated %d rows into '%s'", len(row_dicts), table_name)
 
