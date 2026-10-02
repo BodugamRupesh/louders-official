@@ -383,7 +383,7 @@ cors_origins = list(dict.fromkeys(DEFAULT_ALLOWED_ORIGINS + env_origins))
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_origins,
-    allow_origin_regex=r"^chrome-extension://.*",
+    allow_origin_regex=r"^(chrome-extension|moz-extension)://.*",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -424,7 +424,7 @@ async def add_security_headers_and_logging(request: Request, call_next):
         "geolocation=(), microphone=(), camera=()"
     )
 
-    if os.getenv("HTTPS_DEPLOYMENT", "").lower() in {
+    if settings.IS_PRODUCTION or os.getenv("HTTPS_DEPLOYMENT", "").lower() in {
         "1",
         "true",
         "yes",
@@ -527,11 +527,12 @@ async def handle_database_exception(
     request: Request,
     exc: DatabaseException,
 ):
+    logger.exception("Database exception on %s %s: %s", request.method, request.url.path, exc)
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content=error_response(
             "DATABASE_ERROR",
-            str(exc) or "Database error occurred.",
+            "A database error occurred. Please try again.",
         ).model_dump(),
     )
 
@@ -541,6 +542,7 @@ async def handle_license_server_exception(
     request: Request,
     exc: LicenseServerException,
 ):
+    logger.exception("License server error on %s %s: %s", request.method, request.url.path, exc)
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content=error_response(

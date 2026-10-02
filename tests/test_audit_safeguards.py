@@ -136,3 +136,40 @@ def test_system_metadata_prevents_reseeding_after_cleanup(isolated_db):
 
     with Session() as db:
         assert db.query(Customer).count() == 0
+
+
+def test_database_exception_handler_sanitizes_output():
+    from fastapi.testclient import TestClient
+    from app.main import app
+    from app.exceptions import DatabaseException
+
+    client = TestClient(app, raise_server_exceptions=False)
+
+    @app.get("/_test_db_leak")
+    def _test_leak():
+        raise DatabaseException("SECRET_INTERNAL_DB_PASSWORD_LEAK at /var/data/licenses.db")
+
+    resp = client.get("/_test_db_leak")
+    assert resp.status_code == 500
+    data = resp.json()
+    assert data["success"] is False
+    assert data["error"]["code"] == "DATABASE_ERROR"
+    assert "SECRET_INTERNAL_DB_PASSWORD_LEAK" not in data["error"]["message"]
+    assert "A database error occurred. Please try again." in data["error"]["message"]
+
+
+def test_cors_supports_firefox_extension_origin():
+    from fastapi.testclient import TestClient
+    from app.main import app
+
+    client = TestClient(app)
+    resp = client.options(
+        "/api/v1/extensions/version",
+        headers={
+            "Origin": "moz-extension://d4e7b8a1-2c3d-4e5f-a6b7-8c9d0e1f2a3b",
+            "Access-Control-Request-Method": "GET",
+        },
+    )
+    assert resp.status_code == 200
+    assert resp.headers.get("access-control-allow-origin") == "moz-extension://d4e7b8a1-2c3d-4e5f-a6b7-8c9d0e1f2a3b"
+
