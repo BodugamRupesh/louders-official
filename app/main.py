@@ -178,6 +178,21 @@ async def startup_event():
     _ensure_initial_admin()
     _ensure_default_product()
     _ensure_default_plans()
+
+    # Log database persistence status and active record counts
+    raw_db_path = settings.DATABASE_URL.replace("sqlite:///", "")
+    is_persistent = any(p in raw_db_path for p in ["/var/data", "/data", "/app/data"]) or bool(os.getenv("DATA_DIR"))
+    if is_persistent:
+        logger.info("Database persistence: ACTIVE (path='%s')", raw_db_path)
+    elif os.getenv("RENDER"):
+        logger.warning(
+            "Database persistence: EPHEMERAL STORAGE DETECTED on Render (path='%s'). "
+            "To prevent data loss across restarts/redeploys, mount a Persistent Disk at /var/data or set DATA_DIR.",
+            raw_db_path,
+        )
+    else:
+        logger.info("Database persistence: Local/Standard storage (path='%s')", raw_db_path)
+
     logger.info("LOUD License Server started successfully.")
 
 

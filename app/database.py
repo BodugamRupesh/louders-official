@@ -41,12 +41,36 @@ if settings.DATABASE_URL.startswith("sqlite"):
         cursor.execute("PRAGMA busy_timeout=5000")
         cursor.close()
 
-    # Create safety backup if database exists and has data
+    # Ensure safety backup and restore protection
     db_file_path = os.path.normpath(settings.DATABASE_URL[len("sqlite:///"):])
+    backup_path = f"{db_file_path}.backup"
+
+    # If the active DB is missing or 0-bytes, but a valid backup exists, auto-restore
+    if os.path.isfile(backup_path) and os.path.getsize(backup_path) > 0:
+        if not os.path.isfile(db_file_path) or os.path.getsize(db_file_path) == 0:
+            try:
+                shutil.copy2(backup_path, db_file_path)
+                logger.info("Restored database from safety backup: %s -> %s", backup_path, db_file_path)
+            except Exception as e:
+                logger.warning("Failed to restore database from backup: %s", e)
+
     if os.path.isfile(db_file_path) and os.path.getsize(db_file_path) > 0:
-        backup_path = f"{db_file_path}.backup"
         try:
-            if not os.path.exists(backup_path) or (os.path.getmtime(db_file_path) - os.path.getmtime(backup_path) > 3600):
+            should_backup = False
+            if not os.path.exists(backup_path):
+                should_backup = True
+            elif (os.path.getmtime(db_file_path) - os.path.getmtime(backup_path) > 3600):
+                # Never overwrite a valid backup with an empty or significantly shrunk database
+                if os.path.getsize(db_file_path) >= os.path.getsize(backup_path) * 0.9:
+                    should_backup = True
+                else:
+                    logger.warning(
+                        "Skipping safety backup update: active DB (%d bytes) is smaller than backup (%d bytes)",
+                        os.path.getsize(db_file_path),
+                        os.path.getsize(backup_path),
+                    )
+
+            if should_backup:
                 shutil.copy2(db_file_path, backup_path)
                 logger.info("Database safety backup created at: %s", backup_path)
         except Exception as e:

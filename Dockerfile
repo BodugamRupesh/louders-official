@@ -13,7 +13,7 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 
 COPY . .
 
-RUN chown -R app:app /app
+RUN mkdir -p /app/data && chown -R app:app /app /app/data
 
 USER app
 
