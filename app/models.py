@@ -232,6 +232,12 @@ class License(Base):
     
     last_verified = Column(DateTime, nullable=True)
     
+    bound_device_uuid = Column(
+        String(255),
+        nullable=True,
+        index=True,
+    )
+    
     _activated_device_count = Column("activated_device_count", Integer, default=0)
 
     @hybrid_property

@@ -378,6 +378,7 @@ class LicenseResponse(BaseModel):
     last_device_heartbeat_at: Optional[datetime] = None
     remaining_slots: int
     plan_max_devices: int
+    bound_device_uuid: Optional[str] = None
 
 
 class LicenseDetailedResponse(BaseModel):
@@ -392,6 +393,7 @@ class LicenseDetailedResponse(BaseModel):
     expires_at: datetime
     activated_at: Optional[datetime] = None
     last_verified: Optional[datetime] = None
+    bound_device_uuid: Optional[str] = None
     activated_device_count: int
     product: ProductResponse
     customer: CustomerResponse

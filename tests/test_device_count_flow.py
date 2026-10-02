@@ -224,7 +224,7 @@ def test_device_count_full_lifecycle():
         lic_in_list = next((l for l in list_res.json()["data"]["licenses"] if l["id"] == lic_id), None)
         assert lic_in_list["activated_device_count"] == 1, f"Expected 1, got {lic_in_list['activated_device_count']}"
 
-        # TEST 5 — Second device: Activate Device B. Expected: Devices: 2
+        # TEST 5 — Second device: Activate Device B. Expected: REJECTED (1 license = 1 device)
         device_b_uuid = f"device-b-{int(get_current_time().timestamp())}"
         act_b_res = client.post(
             "/api/v1/extensions/activate",
@@ -238,20 +238,20 @@ def test_device_count_full_lifecycle():
                 "extension_version": "2.0.0"
             }
         )
-        assert act_b_res.status_code == 200, act_b_res.text
-        assert act_b_res.json()["success"] is True
+        assert act_b_res.status_code == 403, f"Expected 403, got {act_b_res.status_code}"
 
-        # Check list endpoint
+        # Check list endpoint - device count remains 1
         list_res = client.get("/api/v1/licenses", headers=headers)
         lic_in_list = next((l for l in list_res.json()["data"]["licenses"] if l["id"] == lic_id), None)
-        assert lic_in_list["activated_device_count"] == 2, f"Expected 2, got {lic_in_list['activated_device_count']}"
+        assert lic_in_list is not None
+        assert lic_in_list["activated_device_count"] == 1, f"Expected 1, got {lic_in_list['activated_device_count']}"
 
-        # TEST 6 — Refresh again: Expected: Devices: 2 persists
+        # TEST 6 — Refresh again: Expected: Devices: 1 persists
         refresh_res = client.get("/api/v1/licenses", headers=headers)
         lic_refreshed = next((l for l in refresh_res.json()["data"]["licenses"] if l["id"] == lic_id), None)
-        assert lic_refreshed["activated_device_count"] == 2
+        assert lic_refreshed["activated_device_count"] == 1
 
-        # TEST 7 — Deactivation: Deactivate Device A using existing deactivation endpoint. Expected: Devices: 1
+        # TEST 7 — Deactivation: Deactivate Device A using existing deactivation endpoint. Expected: Devices: 0
         deact_res = client.post(
             "/api/v1/extensions/deactivate",
             json={
@@ -265,14 +265,16 @@ def test_device_count_full_lifecycle():
 
         list_res = client.get("/api/v1/licenses", headers=headers)
         lic_in_list = next((l for l in list_res.json()["data"]["licenses"] if l["id"] == lic_id), None)
-        assert lic_in_list["activated_device_count"] == 1, f"Expected 1 after deactivation, got {lic_in_list['activated_device_count']}"
+        assert lic_in_list["activated_device_count"] == 0, f"Expected 0 after deactivation, got {lic_in_list['activated_device_count']}"
 
         # TEST 8 — Existing licenses: Test licenses created previously (e.g. License 20)
-        # License 20 has 3 devices in devices table
+        # License 20 device count matches devices table (1 after migration of test devices)
         list_res = client.get("/api/v1/licenses", headers=headers)
         lic_20 = next((l for l in list_res.json()["data"]["licenses"] if l["id"] == 20), None)
         if lic_20:
-            assert lic_20["activated_device_count"] == 3, f"Expected 3 for license 20, got {lic_20['activated_device_count']}"
+            with app_db.engine.connect() as conn:
+                dev_count_20 = conn.execute(text("SELECT COUNT(*) FROM devices WHERE license_id = 20")).scalar()
+            assert lic_20["activated_device_count"] == dev_count_20, f"Expected {dev_count_20} for license 20, got {lic_20['activated_device_count']}"
 
         # License 21 device count matches devices table
         lic_21 = next((l for l in list_res.json()["data"]["licenses"] if l["id"] == 21), None)

@@ -232,6 +232,11 @@ class ExtensionService:
         """
         try:
             license_obj = LicenseService.get_license_by_key(db, license_key)
+            if license_obj.bound_device_uuid and license_obj.bound_device_uuid != device_uuid:
+                raise OperationNotAllowedError(
+                    f"Device '{device_uuid}' is not bound to license '{license_key}'."
+                )
+
             device = DeviceService.get_device_by_uuid(
                 db,
                 license_id=license_obj.id,

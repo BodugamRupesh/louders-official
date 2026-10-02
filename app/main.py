@@ -61,6 +61,12 @@ def _validate_database_ready() -> None:
         # Non-destructive table creation: CREATE TABLE IF NOT EXISTS
         Base.metadata.create_all(bind=engine)
         with engine.begin() as connection:
+            if engine.dialect.name == "postgresql":
+                connection.execute(text("ALTER TABLE licenses ADD COLUMN IF NOT EXISTS bound_device_uuid VARCHAR(255)"))
+            else:
+                cols = [row[1] for row in connection.execute(text("PRAGMA table_info(licenses)")).fetchall()]
+                if "bound_device_uuid" not in cols:
+                    connection.execute(text("ALTER TABLE licenses ADD COLUMN bound_device_uuid VARCHAR(255)"))
             connection.execute(
                 text(
                     "UPDATE licenses SET activated_device_count = "

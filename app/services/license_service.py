@@ -435,6 +435,29 @@ class LicenseService:
                 db.commit()
                 raise LicenseExpiredError(f"License '{license_key}' has expired")
             
+            # Enforce permanent device binding: 1 LICENSE = 1 CUSTOMER EMAIL = 1 DEVICE UUID
+            if license_obj.bound_device_uuid is not None:
+                if license_obj.bound_device_uuid != device_uuid:
+                    raise OperationNotAllowedError(
+                        f"License '{license_key}' is permanently bound to device '{license_obj.bound_device_uuid}'. Activation with another device UUID is rejected."
+                    )
+            else:
+                # Concurrency-safe atomic reservation on first activation
+                rows = db.query(License).filter(
+                    License.id == license_obj.id,
+                    License.bound_device_uuid.is_(None),
+                ).update({"bound_device_uuid": device_uuid}, synchronize_session=False)
+                db.flush()
+
+                if rows == 0:
+                    db.refresh(license_obj)
+                    if license_obj.bound_device_uuid != device_uuid:
+                        raise OperationNotAllowedError(
+                            f"License '{license_key}' is permanently bound to device '{license_obj.bound_device_uuid}'. Activation with another device UUID is rejected."
+                        )
+                else:
+                    license_obj.bound_device_uuid = device_uuid
+            
             # Register or update device using shared device service logic
             device = DeviceService.register_device(
                 db,
@@ -486,6 +509,7 @@ class LicenseService:
             LicenseRevokedError,
             LicenseSuspendedError,
             DeviceLimitExceededError,
+            OperationNotAllowedError,
         ):
             raise
         except SQLAlchemyError as exc:
@@ -537,6 +561,12 @@ class LicenseService:
                 db.commit()
                 raise LicenseExpiredError(f"License '{license_key}' has expired")
             
+            # Enforce permanent device binding: 1 LICENSE = 1 CUSTOMER EMAIL = 1 DEVICE UUID
+            if license_obj.bound_device_uuid and license_obj.bound_device_uuid != device_uuid:
+                raise DeviceNotFoundError(
+                    f"Device '{device_uuid}' is not bound to license '{license_key}'"
+                )
+
             # Find device
             device = db.query(Device).filter(
                 Device.license_id == license_obj.id,
@@ -913,6 +943,9 @@ class LicenseService:
                 action_desc = f"devices_reset_all ({devices_removed} devices removed)"
 
             db.flush()
+            if not device_uuid or license_obj.bound_device_uuid == device_uuid:
+                license_obj.bound_device_uuid = None
+
             remaining_count = db.query(Device).filter(
                 Device.license_id == license_obj.id,
             ).count()

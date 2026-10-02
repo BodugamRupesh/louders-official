@@ -102,16 +102,23 @@ class DeviceService:
                 
                 return existing
             
+            # Enforce permanent device binding: 1 LICENSE = 1 CUSTOMER EMAIL = 1 DEVICE UUID
+            if license_obj.bound_device_uuid and license_obj.bound_device_uuid != device_uuid:
+                raise OperationNotAllowedError(
+                    f"License is permanently bound to device '{license_obj.bound_device_uuid}'. Registration of device '{device_uuid}' is rejected."
+                )
+
             # Check device limit only when a new device would be created
             current_device_count = db.query(Device).filter(
                 Device.license_id == license_id
             ).count()
             
-            max_devices = license_obj.plan.max_devices
+            # The required business model is exactly 1 device per license
+            max_devices = 1
             
             if current_device_count >= max_devices:
                 raise DeviceLimitExceededError(
-                    f"License has reached maximum device limit of {max_devices}"
+                    f"License has reached maximum device limit of {max_devices} device"
                 )
             
             # Create new device
@@ -143,7 +150,7 @@ class DeviceService:
             
             return device
             
-        except (LicenseNotFoundError, DeviceLimitExceededError):
+        except (LicenseNotFoundError, DeviceLimitExceededError, OperationNotAllowedError):
             raise
         except IntegrityError:
             # Handle concurrent race condition: another request already inserted this device

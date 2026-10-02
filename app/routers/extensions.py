@@ -45,6 +45,7 @@ from app.exceptions import (
     LicenseRevokedError,
     DeviceLimitExceededError,
     DeviceNotFoundError,
+    OperationNotAllowedError,
     DatabaseException,
     LicenseServerException,
 )
@@ -178,6 +179,12 @@ async def activate_license(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Device limit reached for this license",
+        )
+    
+    except OperationNotAllowedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(exc),
         )
     
     except LicenseServerException as exc:
