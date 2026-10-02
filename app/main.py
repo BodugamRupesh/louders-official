@@ -53,16 +53,127 @@ logger = logging.getLogger(__name__)
 def _validate_database_ready() -> None:
     """Ensure the database is available and all tables exist safely before serving requests."""
     try:
-        from app.database import Base, engine
+        from app.database import Base, engine, log_safe_database_info
+        log_safe_database_info()
+
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
         # Non-destructive table creation: CREATE TABLE IF NOT EXISTS
         Base.metadata.create_all(bind=engine)
+        with engine.begin() as connection:
+            connection.execute(
+                text(
+                    "UPDATE licenses SET activated_device_count = "
+                    "(SELECT COUNT(*) FROM devices WHERE devices.license_id = licenses.id)"
+                )
+            )
+        # Migrate baseline data from SQLite if target database is empty
+        _ensure_baseline_data_migrated()
     except SQLAlchemyError as exc:
         raise RuntimeError(
             "Database is unavailable during startup. "
             "Ensure the database server is running."
         ) from exc
+
+
+def _ensure_baseline_data_migrated() -> None:
+    """
+    Safely and idempotently migrate existing records from the SQLite repository seed
+    into the production database (Neon PostgreSQL) if the target database has no customers.
+    Preserves exact IDs, relationships, and created timestamps.
+    Never overwrites or duplicates existing records.
+    """
+    import sqlite3
+    from app.database import engine
+
+    try:
+        with engine.connect() as conn:
+            cust_count = conn.execute(text("SELECT COUNT(*) FROM customers")).scalar()
+            if cust_count and cust_count > 0:
+                logger.info("Target database already contains %d customers; baseline seed migration skipped.", cust_count)
+                return
+
+        # Locate best available SQLite seed file
+        seed_candidates = [
+            os.path.normpath(os.path.join(settings.PROJECT_ROOT, "licenses.db")),
+            os.path.normpath(os.path.join(settings.PROJECT_ROOT, "licenses.db.backup")),
+            os.path.normpath(os.path.join(settings.PROJECT_ROOT, "licenses.db.safe_backup")),
+        ]
+        best_seed = None
+        for cand in seed_candidates:
+            if os.path.isfile(cand) and os.path.getsize(cand) > 0:
+                best_seed = cand
+                break
+
+        if not best_seed:
+            logger.info("No SQLite baseline seed found to migrate.")
+            return
+
+        logger.info("Migrating baseline records from SQLite seed: %s", best_seed)
+        sconn = sqlite3.connect(f"file:{best_seed}?mode=ro", uri=True)
+        scur = sconn.cursor()
+
+        tables_to_migrate = [
+            "admin_users",
+            "products",
+            "plans",
+            "customers",
+            "licenses",
+            "devices",
+            "activity_logs",
+        ]
+
+        with engine.begin() as dest_conn:
+            for table_name in tables_to_migrate:
+                try:
+                    scur.execute(f"PRAGMA table_info({table_name})")
+                    col_info = scur.fetchall()
+                    if not col_info:
+                        continue
+                    col_names = [c[1] for c in col_info]
+
+                    cols_str = ", ".join(f'"{c}"' for c in col_names)
+                    scur.execute(f"SELECT {cols_str} FROM {table_name}")
+                    rows = scur.fetchall()
+                    if not rows:
+                        continue
+
+                    placeholders = ", ".join(f":{c}" for c in col_names)
+                    if engine.dialect.name == "postgresql":
+                        insert_stmt = text(
+                            f"INSERT INTO {table_name} ({cols_str}) VALUES ({placeholders}) "
+                            f"ON CONFLICT (id) DO NOTHING"
+                        )
+                    else:
+                        insert_stmt = text(
+                            f"INSERT OR IGNORE INTO {table_name} ({cols_str}) VALUES ({placeholders})"
+                        )
+
+                    row_dicts = [dict(zip(col_names, r)) for r in rows]
+                    dest_conn.execute(insert_stmt, row_dicts)
+                    logger.info("Migrated %d rows into '%s'", len(row_dicts), table_name)
+
+                except Exception as table_err:
+                    logger.warning("Migration notice for table '%s': %s", table_name, table_err)
+
+            # In PostgreSQL, synchronize primary key sequences after inserting explicit IDs
+            if engine.dialect.name == "postgresql":
+                for table_name in tables_to_migrate:
+                    try:
+                        dest_conn.execute(
+                            text(
+                                f"SELECT setval(pg_get_serial_sequence('{table_name}', 'id'), "
+                                f"coalesce((SELECT MAX(id) FROM {table_name}), 1))"
+                            )
+                        )
+                    except Exception as seq_err:
+                        logger.debug("Sequence synchronization for '%s': %s", table_name, seq_err)
+
+        sconn.close()
+        logger.info("Baseline seed migration to persistent database completed successfully.")
+
+    except Exception as exc:
+        logger.warning("Baseline seed migration notice: %s", exc)
 
 
 def _ensure_initial_admin() -> None:
@@ -179,19 +290,11 @@ async def startup_event():
     _ensure_default_product()
     _ensure_default_plans()
 
-    # Log database persistence status and active record counts
-    raw_db_path = settings.DATABASE_URL.replace("sqlite:///", "")
-    is_persistent = any(p in raw_db_path for p in ["/var/data", "/data", "/app/data"]) or bool(os.getenv("DATA_DIR"))
-    if is_persistent:
-        logger.info("Database persistence: ACTIVE (path='%s')", raw_db_path)
-    elif os.getenv("RENDER"):
-        logger.warning(
-            "Database persistence: EPHEMERAL STORAGE DETECTED on Render (path='%s'). "
-            "To prevent data loss across restarts/redeploys, mount a Persistent Disk at /var/data or set DATA_DIR.",
-            raw_db_path,
-        )
+    # Log database persistence status
+    if settings.DATABASE_URL.startswith("sqlite"):
+        logger.info("Database persistence: Local SQLite storage (development mode)")
     else:
-        logger.info("Database persistence: Local/Standard storage (path='%s')", raw_db_path)
+        logger.info("Database persistence: Neon PostgreSQL PERSISTENT STORAGE ACTIVE")
 
     logger.info("LOUD License Server started successfully.")
 

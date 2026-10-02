@@ -20,6 +20,7 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from app.config import settings
 from app.database import Base
@@ -211,7 +212,21 @@ class License(Base):
     
     last_verified = Column(DateTime, nullable=True)
     
-    activated_device_count = Column(Integer, default=0)
+    _activated_device_count = Column("activated_device_count", Integer, default=0)
+
+    @hybrid_property
+    def activated_device_count(self) -> int:
+        if self.devices is not None:
+            return len(self.devices)
+        return self._activated_device_count or 0
+
+    @activated_device_count.setter
+    def activated_device_count(self, value: int):
+        self._activated_device_count = value
+
+    @activated_device_count.expression
+    def activated_device_count(cls):
+        return cls._activated_device_count
     
     # Relationships
     product = relationship("Product", back_populates="licenses")

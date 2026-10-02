@@ -4,6 +4,8 @@ and customer delete functionality.
 """
 
 import os
+import shutil
+import tempfile
 import pytest
 from datetime import datetime, timedelta
 from fastapi.testclient import TestClient
@@ -12,11 +14,89 @@ from sqlalchemy.orm import sessionmaker
 
 from app.main import app
 from app.database import Base, get_db
+import app.database as app_db
 from app.models import AdminUser, Product, Customer, License, Plan, Device
 from app.services.auth_service import AuthService
 from app.services.customer_service import CustomerService
 from app.services.license_service import LicenseService
 from app.utils.datetime_utils import get_current_time
+
+
+@pytest.fixture(autouse=True)
+def isolate_test_database():
+    """
+    Isolate test database using the temporary sandbox pattern from verify_full_lifecycle.py.
+    Ensures that test execution never reads or writes from the live production database.
+    """
+    temp_dir = tempfile.mkdtemp(prefix="louders_test_")
+    test_db = os.path.join(temp_dir, "test_licenses.db").replace("\\", "/")
+
+    # Copy current production db to initialize test db with production schema and seed
+    prod_db = os.path.normpath(os.path.join(os.path.dirname(os.path.dirname(__file__)), "licenses.db"))
+    if os.path.exists(prod_db):
+        shutil.copy2(prod_db, test_db)
+
+    orig_db_url = os.environ.get("DATABASE_URL")
+    orig_admin_user = os.environ.get("ADMIN_USERNAME")
+    orig_admin_pass = os.environ.get("ADMIN_PASSWORD")
+
+    os.environ["DATABASE_URL"] = f"sqlite:///{test_db}"
+    os.environ["ADMIN_USERNAME"] = "hanzoo"
+    os.environ["ADMIN_PASSWORD"] = "Hanzoo@2511"
+
+    test_engine = create_engine(
+        f"sqlite:///{test_db}",
+        connect_args={"check_same_thread": False},
+        future=True,
+    )
+    TestSessionLocal = sessionmaker(
+        bind=test_engine,
+        autocommit=False,
+        autoflush=False,
+        expire_on_commit=False,
+    )
+
+    orig_engine = app_db.engine
+    orig_session_local = app_db.SessionLocal
+    app_db.engine = test_engine
+    app_db.SessionLocal = TestSessionLocal
+
+    def override_get_db():
+        db = TestSessionLocal()
+        try:
+            yield db
+        finally:
+            db.close()
+
+    app.dependency_overrides[get_db] = override_get_db
+
+    yield
+
+    app.dependency_overrides.pop(get_db, None)
+    app_db.engine = orig_engine
+    app_db.SessionLocal = orig_session_local
+    test_engine.dispose()
+
+    if orig_db_url is not None:
+        os.environ["DATABASE_URL"] = orig_db_url
+    else:
+        os.environ.pop("DATABASE_URL", None)
+
+    if orig_admin_user is not None:
+        os.environ["ADMIN_USERNAME"] = orig_admin_user
+    else:
+        os.environ.pop("ADMIN_USERNAME", None)
+
+    if orig_admin_pass is not None:
+        os.environ["ADMIN_PASSWORD"] = orig_admin_pass
+    else:
+        os.environ.pop("ADMIN_PASSWORD", None)
+
+    try:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+    except Exception:
+        pass
+
 
 client = TestClient(app)
 

@@ -53,6 +53,8 @@ def run_tests():
     if os.path.exists(prod_db):
         shutil.copy2(prod_db, test_db)
         
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    os.environ["APP_ENV"] = "development"
     os.environ["DATABASE_URL"] = f"sqlite:///{test_db}"
     os.environ["ADMIN_USERNAME"] = "hanzoo"
     os.environ["ADMIN_PASSWORD"] = "Hanzoo@2511"

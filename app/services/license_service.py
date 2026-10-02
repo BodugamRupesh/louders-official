@@ -442,7 +442,10 @@ class LicenseService:
             # Update activation metadata on first activation
             if not license_obj.activated_at:
                 license_obj.activated_at = get_current_time()
-            license_obj.activated_device_count = len(license_obj.devices)
+            
+            db.expire(license_obj, ["devices"])
+            device_count = DeviceService.get_device_count(db, license_obj.id)
+            license_obj.activated_device_count = device_count
             
             db.commit()
             db.refresh(license_obj)
@@ -466,7 +469,7 @@ class LicenseService:
                 "device_id": device.id,
                 "device_uuid": device.device_uuid,
                 "max_devices": license_obj.plan.max_devices,
-                "devices_used": len(license_obj.devices)
+                "devices_used": device_count
             }
             
         except (
@@ -919,6 +922,7 @@ class LicenseService:
 
             db.commit()
             db.refresh(license_obj)
+            db.expire(license_obj, ["devices"])
 
             return {
                 "license_key": license_key,

@@ -98,6 +98,7 @@ class DeviceService:
                 
                 db.commit()
                 db.refresh(existing)
+                db.expire(license_obj, ["devices"])
                 
                 return existing
             
@@ -130,8 +131,14 @@ class DeviceService:
             )
             
             db.add(device)
+            current_count = db.query(Device).filter(
+                Device.license_id == license_id
+            ).count()
+            license_obj.activated_device_count = current_count
             db.commit()
             db.refresh(device)
+            db.refresh(license_obj)
+            db.expire(license_obj, ["devices"])
             
             return device
             
@@ -225,6 +232,8 @@ class DeviceService:
                     Device.license_id == license_obj.id
                 ).count()
                 db.commit()
+                db.refresh(license_obj)
+                db.expire(license_obj, ["devices"])
             
             return True
             

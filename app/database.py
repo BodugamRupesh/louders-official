@@ -26,6 +26,11 @@ if settings.DATABASE_URL.startswith("sqlite"):
     engine_kwargs["connect_args"] = {
         "check_same_thread": False,
     }
+else:
+    # PostgreSQL (Neon) connection pool configuration
+    engine_kwargs["pool_size"] = 10
+    engine_kwargs["max_overflow"] = 20
+    engine_kwargs["pool_recycle"] = 300
 
 engine = create_engine(
     settings.DATABASE_URL,
@@ -41,7 +46,7 @@ if settings.DATABASE_URL.startswith("sqlite"):
         cursor.execute("PRAGMA busy_timeout=5000")
         cursor.close()
 
-    # Ensure safety backup and restore protection
+    # Ensure safety backup and restore protection ONLY for SQLite
     db_file_path = os.path.normpath(settings.DATABASE_URL[len("sqlite:///"):])
     backup_path = f"{db_file_path}.backup"
 
@@ -93,3 +98,37 @@ def get_db() -> Generator[Session, None, None]:
         yield db
     finally:
         db.close()
+
+
+def get_masked_db_url(url: str) -> str:
+    """Return a sanitized connection string with password masked."""
+    try:
+        from urllib.parse import urlparse
+        parsed = urlparse(url)
+        if parsed.scheme.startswith("sqlite"):
+            return url
+        netloc = parsed.netloc
+        if "@" in netloc:
+            creds, host_port = netloc.split("@", 1)
+            user = creds.split(":", 1)[0] if ":" in creds else creds
+            masked_netloc = f"{user}:***@{host_port}"
+        else:
+            masked_netloc = netloc
+        return f"{parsed.scheme}://{masked_netloc}{parsed.path}"
+    except Exception:
+        return "postgresql://***:***@hidden"
+
+
+def log_safe_database_info() -> None:
+    """Log database connection information safely without exposing credentials."""
+    if settings.DATABASE_URL.startswith("sqlite"):
+        logger.info("Database backend: SQLite (development mode, local file: %s)", settings.DATABASE_URL)
+    else:
+        try:
+            from urllib.parse import urlparse
+            parsed = urlparse(settings.DATABASE_URL)
+            host = parsed.hostname or "unknown"
+            dbname = parsed.path.lstrip("/") or "unknown"
+            logger.info("Database backend: PostgreSQL | Host: %s | Database: %s", host, dbname)
+        except Exception:
+            logger.info("Database backend: PostgreSQL (credentials masked)")

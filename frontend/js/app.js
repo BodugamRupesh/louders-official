@@ -811,17 +811,7 @@ const LOUDApp = (() => {
             closeModal('modal-customer');
             closeModal('modal-customer-details');
 
-            // In-place UI update without full page reload
-            const row = document.getElementById(`customer-row-${targetId}`);
-            if (row) {
-                row.remove();
-            }
-
-            const tbody = document.querySelector('#customers-table tbody');
-            if (tbody && tbody.children.length === 0) {
-                const emptyEl = document.getElementById('customers-table-empty');
-                if (emptyEl) emptyEl.style.display = 'block';
-            }
+            await renderCustomersPane();
         } catch(e) {
             showToast(e.message || 'Failed to delete customer', 'error');
         } finally {
@@ -830,8 +820,8 @@ const LOUDApp = (() => {
         }
     };
 
-    window.deleteCustomer = function(id, name = '') {
-        promptDeleteCustomer(id, name);
+    window.deleteCustomer = function(id, name = '', email = '') {
+        promptDeleteCustomer(id, name, email);
     };
 
     window.editCustomer = async function(id) {
@@ -910,7 +900,7 @@ const LOUDApp = (() => {
                 const delModalBtn = document.getElementById('btn-delete-customer-from-modal');
                 if (delModalBtn) {
                     delModalBtn.onclick = () => {
-                        deleteCustomer(c.id, c.name);
+                        promptDeleteCustomer(c.id, c.name, c.email);
                     };
                 }
 
@@ -1101,7 +1091,7 @@ const LOUDApp = (() => {
             }
 
             // Update Console hologram elements
-            const activeCount = l ? l.activated_device_count : (devicesRes.data?.count || 0);
+            const activeCount = Math.max(l?.activated_device_count ?? 0, devicesRes.data?.count ?? 0, (devicesRes.data?.devices || []).length);
             const percentage = Math.min((activeCount / maxDevices) * 100, 100);
             document.getElementById('lic-console-seat-fill').style.width = `${percentage}%`;
             document.getElementById('lic-console-seat-text').innerText = `${activeCount} / ${maxDevices} seats occupied`;
