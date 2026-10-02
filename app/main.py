@@ -79,18 +79,64 @@ def _validate_database_ready() -> None:
 def _ensure_baseline_data_migrated() -> None:
     """
     Safely and idempotently migrate existing records from the SQLite repository seed
-    into the production database (Neon PostgreSQL) if the target database has no customers.
+    into the production database (Neon PostgreSQL) only on first-time database initialization.
     Preserves exact IDs, relationships, and created timestamps.
     Never overwrites or duplicates existing records.
+    Never resurrects deleted records after an intentional database cleanup or reset.
     """
     import sqlite3
     from app.database import engine
 
     try:
-        with engine.connect() as conn:
-            cust_count = conn.execute(text("SELECT COUNT(*) FROM customers")).scalar()
-            if cust_count and cust_count > 0:
-                logger.info("Target database already contains %d customers; baseline seed migration skipped.", cust_count)
+        force_migration = os.getenv("FORCE_BASELINE_MIGRATION", "").strip().lower() in {"1", "true", "yes"}
+
+        with engine.begin() as conn:
+            # 1. Ensure system_metadata table exists
+            conn.execute(
+                text(
+                    "CREATE TABLE IF NOT EXISTS system_metadata ("
+                    "key VARCHAR(100) PRIMARY KEY, "
+                    "value TEXT NOT NULL, "
+                    "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+                    "updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+                    ")"
+                )
+            )
+
+            # 2. Check if baseline migration was already completed
+            migrated_val = conn.execute(
+                text("SELECT value FROM system_metadata WHERE key = 'baseline_migration_completed'")
+            ).scalar()
+
+            if migrated_val == "true" and not force_migration:
+                logger.info("Baseline data migration already recorded as completed; startup baseline seeding skipped.")
+                return
+
+            # 3. If target database already contains any customers or admin users or products,
+            # it is an existing initialized database (e.g. customers were intentionally cleared or already exist).
+            # Mark migration completed so future startups never resurrect deleted records.
+            admin_count = conn.execute(text("SELECT COUNT(*) FROM admin_users")).scalar() or 0
+            cust_count = conn.execute(text("SELECT COUNT(*) FROM customers")).scalar() or 0
+            prod_count = conn.execute(text("SELECT COUNT(*) FROM products")).scalar() or 0
+
+            if (admin_count > 0 or cust_count > 0 or prod_count > 0) and not force_migration:
+                logger.info(
+                    "Database is already initialized (admins=%d, customers=%d, products=%d); marking baseline migration completed.",
+                    admin_count, cust_count, prod_count
+                )
+                if engine.dialect.name == "postgresql":
+                    conn.execute(
+                        text(
+                            "INSERT INTO system_metadata (key, value) VALUES ('baseline_migration_completed', 'true') "
+                            "ON CONFLICT (key) DO UPDATE SET value = 'true', updated_at = CURRENT_TIMESTAMP"
+                        )
+                    )
+                else:
+                    conn.execute(
+                        text(
+                            "INSERT OR REPLACE INTO system_metadata (key, value) VALUES ('baseline_migration_completed', 'true')"
+                        )
+                    )
                 return
 
         # Locate best available SQLite seed file
@@ -168,6 +214,21 @@ def _ensure_baseline_data_migrated() -> None:
                         )
                     except Exception as seq_err:
                         logger.debug("Sequence synchronization for '%s': %s", table_name, seq_err)
+
+            # Mark baseline migration completed in metadata
+            if engine.dialect.name == "postgresql":
+                dest_conn.execute(
+                    text(
+                        "INSERT INTO system_metadata (key, value) VALUES ('baseline_migration_completed', 'true') "
+                        "ON CONFLICT (key) DO UPDATE SET value = 'true', updated_at = CURRENT_TIMESTAMP"
+                    )
+                )
+            else:
+                dest_conn.execute(
+                    text(
+                        "INSERT OR REPLACE INTO system_metadata (key, value) VALUES ('baseline_migration_completed', 'true')"
+                    )
+                )
 
         sconn.close()
         logger.info("Baseline seed migration to persistent database completed successfully.")

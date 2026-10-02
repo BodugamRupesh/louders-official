@@ -38,6 +38,26 @@ def generate_product_api_key():
     return f"lp_{secrets.token_urlsafe(32)}"
 
 
+class SystemMetadata(Base):
+    """System Metadata model for persistent application flags and migration tracking."""
+    
+    __tablename__ = "system_metadata"
+
+    key = Column(String(100), primary_key=True)
+    value = Column(Text, nullable=False)
+    created_at = Column(
+        DateTime,
+        nullable=False,
+        server_default=func.now(),
+    )
+    updated_at = Column(
+        DateTime,
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+
 class AdminUser(Base):
     """Admin User Model - manages platform administrators."""
     

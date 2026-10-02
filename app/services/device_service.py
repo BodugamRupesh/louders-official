@@ -13,7 +13,7 @@ from app.utils.datetime_utils import get_current_time
 from datetime import datetime, timedelta
 
 from sqlalchemy import func
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -131,6 +131,7 @@ class DeviceService:
             )
             
             db.add(device)
+            db.flush()
             current_count = db.query(Device).filter(
                 Device.license_id == license_id
             ).count()
@@ -144,6 +145,36 @@ class DeviceService:
             
         except (LicenseNotFoundError, DeviceLimitExceededError):
             raise
+        except IntegrityError:
+            # Handle concurrent race condition: another request already inserted this device
+            db.rollback()
+            existing = db.query(Device).filter(
+                Device.license_id == license_id,
+                Device.device_uuid == device_uuid,
+            ).first()
+            if existing is not None:
+                existing.device_name = device_name or existing.device_name
+                existing.browser = browser
+                if operating_system is not None:
+                    existing.operating_system = operating_system
+                if extension_version is not None:
+                    existing.extension_version = extension_version
+                if ip_address is not None:
+                    existing.ip_address = ip_address
+                if device_fingerprint is not None:
+                    existing.device_fingerprint = device_fingerprint
+                if existing.is_disabled:
+                    existing.token_version += 1
+                existing.is_disabled = False
+                now = get_current_time()
+                existing.last_seen = now
+                existing.last_heartbeat_at = now
+                existing.last_verified_at = now
+
+                db.commit()
+                db.refresh(existing)
+                return existing
+            raise DatabaseError("Failed to register device due to concurrent conflict.")
         except SQLAlchemyError as exc:
             db.rollback()
             raise DatabaseError(f"Failed to register device: {exc}") from exc
@@ -225,13 +256,15 @@ class DeviceService:
             license_obj = db.query(License).filter(License.id == device.license_id).first()
             
             db.delete(device)
-            db.commit()
+            db.flush()
             
             if license_obj is not None:
                 license_obj.activated_device_count = db.query(Device).filter(
                     Device.license_id == license_obj.id
                 ).count()
-                db.commit()
+            
+            db.commit()
+            if license_obj is not None:
                 db.refresh(license_obj)
                 db.expire(license_obj, ["devices"])
             

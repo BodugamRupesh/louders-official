@@ -296,7 +296,7 @@ class LicenseService:
     @staticmethod
     def delete_license(db: Session, license_id: int) -> bool:
         """
-        Delete a license record by ID.
+        Delete a license record by ID and cleanly purge associated child records.
 
         Args:
             db: SQLAlchemy database session.
@@ -307,6 +307,10 @@ class LicenseService:
         """
         try:
             license_obj = LicenseService.get_license(db, license_id)
+            for dev in list(license_obj.devices):
+                db.delete(dev)
+            for act in list(license_obj.activity_logs):
+                db.delete(act)
             db.delete(license_obj)
             db.commit()
             return True
@@ -319,7 +323,7 @@ class LicenseService:
     @staticmethod
     def delete_revoked_license(db: Session, license_key: str) -> bool:
         """
-        Delete a license that is already revoked.
+        Delete a license that is already revoked and cleanly purge associated child records.
 
         Args:
             db: SQLAlchemy database session.
@@ -341,11 +345,14 @@ class LicenseService:
                     f"License '{license_key}' is not revoked and cannot be deleted via this endpoint"
                 )
 
-            # perform delete
+            for dev in list(license_obj.devices):
+                db.delete(dev)
+            for act in list(license_obj.activity_logs):
+                db.delete(act)
             db.delete(license_obj)
             db.commit()
             return True
-        except LicenseNotFoundError:
+        except (LicenseNotFoundError, OperationNotAllowedError):
             raise
         except SQLAlchemyError as exc:
             db.rollback()

@@ -42,6 +42,7 @@ class ExtensionService:
     SUPPORTED_BROWSERS: dict[str, str] = {
         "chrome": "Chrome",
         "edge": "Edge",
+        "firefox": "Firefox",
         "brave": "Brave",
         "opera": "Opera",
     }

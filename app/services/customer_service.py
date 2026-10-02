@@ -36,13 +36,15 @@ class CustomerService:
         return name.strip()
 
     @staticmethod
-    def _clean_optional(value: str | None) -> str | None:
+    def _clean_optional(value: str | None, lower: bool = False) -> str | None:
         """Normalize optional string fields."""
         if value is None:
             return None
 
-        value = value.strip().lower()
-        return value or None
+        val = value.strip()
+        if lower:
+            val = val.lower()
+        return val or None
 
     @staticmethod
     def create_customer(
@@ -57,9 +59,9 @@ class CustomerService:
         """
 
         name = CustomerService._validate_name(name)
-        email = CustomerService._clean_optional(email)
-        phone = CustomerService._clean_optional(phone)
-        notes = CustomerService._clean_optional(notes)
+        email = CustomerService._clean_optional(email, lower=True)
+        phone = CustomerService._clean_optional(phone, lower=False)
+        notes = CustomerService._clean_optional(notes, lower=False)
 
         if email is None:
             raise InvalidDataError("Customer email cannot be empty.")
@@ -170,7 +172,7 @@ class CustomerService:
                 customer.name = CustomerService._validate_name(name)
 
             if email is not None:
-                email = CustomerService._clean_optional(email)
+                email = CustomerService._clean_optional(email, lower=True)
 
                 if email is None:
                     raise InvalidDataError("Customer email cannot be empty.")
@@ -192,10 +194,10 @@ class CustomerService:
                 customer.email = email
 
             if phone is not None:
-                customer.phone = CustomerService._clean_optional(phone)
+                customer.phone = CustomerService._clean_optional(phone, lower=False)
 
             if notes is not None:
-                customer.notes = CustomerService._clean_optional(notes)
+                customer.notes = CustomerService._clean_optional(notes, lower=False)
 
             db.commit()
             db.refresh(customer)
