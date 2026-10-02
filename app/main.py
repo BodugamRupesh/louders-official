@@ -96,7 +96,9 @@ def _ensure_baseline_data_migrated() -> None:
     Never resurrects deleted records after an intentional database cleanup or reset.
     """
     import sqlite3
-    from app.database import engine
+    from sqlalchemy import Boolean
+    import app.models
+    from app.database import Base, engine
 
     try:
         force_migration = os.getenv("FORCE_BASELINE_MIGRATION", "").strip().lower() in {"1", "true", "yes"}
@@ -207,6 +209,16 @@ def _ensure_baseline_data_migrated() -> None:
                         )
 
                     row_dicts = [dict(zip(col_names, r)) for r in rows]
+
+                    # Convert SQLite integer booleans (0/1) to Python booleans for destination Boolean columns
+                    table_meta = Base.metadata.tables.get(table_name)
+                    if table_meta is not None:
+                        bool_cols = {c.name for c in table_meta.columns if isinstance(c.type, Boolean)}
+                        if bool_cols:
+                            for r in row_dicts:
+                                for bc in bool_cols:
+                                    if bc in r and r[bc] is not None:
+                                        r[bc] = bool(r[bc])
 
                     if table_name == "admin_users":
                         # Safely handle admin_users conflicts: skip rows where id OR username already exists
