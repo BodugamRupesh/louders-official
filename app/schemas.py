@@ -243,6 +243,15 @@ class CustomerResponse(BaseModel):
     notes: Optional[str] = None
     created_at: datetime
     license_count: Optional[int] = 0
+
+
+class CustomerPermanentDeleteRequest(BaseModel):
+    """Schema for customer permanent deletion confirmation."""
+
+    confirmation_email: str = Field(
+        ...,
+        description="Customer email required for explicit deletion confirmation",
+    )
     primary_license_key: Optional[str] = None
     primary_license_status: Optional[str] = None
     primary_license_expiry: Optional[datetime] = None

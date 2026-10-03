@@ -278,6 +278,85 @@ class CustomerService:
                 f"Failed to delete customer: {exc}"
             ) from exc
 
+    @staticmethod
+    def permanent_delete_customer(
+        db: Session,
+        customer_id: int,
+        confirmation_email: str,
+        admin_username: str | None = None,
+        admin_id: int | None = None,
+    ) -> dict:
+        """
+        Permanently delete a customer and all their associated records
+        (licenses, devices, activity logs) after explicit email confirmation.
+
+        Args:
+            db: SQLAlchemy database session.
+            customer_id: Customer ID to permanently delete.
+            confirmation_email: Exact email address provided by admin for confirmation.
+            admin_username: Optional username of admin executing deletion.
+            admin_id: Optional ID of admin executing deletion.
+
+        Returns:
+            Dict containing details of permanently deleted customer.
+
+        Raises:
+            CustomerNotFoundError: If customer does not exist.
+            InvalidDataError: If confirmation email does not match customer email.
+            DatabaseError: If database operation fails.
+        """
+        try:
+            customer = CustomerService.get_customer(
+                db,
+                customer_id,
+            )
+
+            # Strong confirmation validation
+            cleaned_confirmation = (confirmation_email or "").strip().lower()
+            if cleaned_confirmation != customer.email.strip().lower():
+                raise InvalidDataError(
+                    f"Confirmation email '{confirmation_email}' does not match customer email '{customer.email}'."
+                )
+
+            customer_email = customer.email
+            customer_name = customer.name
+            license_count = len(customer.licenses) if customer.licenses else 0
+
+            # Ensure all dependent relationships are populated so SQLAlchemy cascades them in foreign-key order
+            for lic in customer.licenses:
+                _ = lic.devices
+                _ = lic.activity_logs
+
+            db.delete(customer)
+            db.commit()
+
+            logger.info(
+                "Customer PERMANENTLY deleted: customer_id=%s | name='%s' | email='%s' | licenses_deleted=%s | admin='%s' (id=%s) | timestamp=%s",
+                customer_id,
+                customer_name,
+                customer_email,
+                license_count,
+                admin_username or "system",
+                admin_id,
+                get_current_time().isoformat(),
+            )
+
+            return {
+                "customer_id": customer_id,
+                "name": customer_name,
+                "email": customer_email,
+                "licenses_deleted": license_count,
+                "deleted_at": get_current_time().isoformat(),
+            }
+
+        except (CustomerNotFoundError, InvalidDataError):
+            raise
+
+        except SQLAlchemyError as exc:
+            db.rollback()
+            raise DatabaseError(
+                f"Failed to permanently delete customer: {exc}"
+            ) from exc
 
     @staticmethod
     def list_customers(

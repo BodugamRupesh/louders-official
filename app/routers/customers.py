@@ -13,6 +13,7 @@ from app.dependencies import get_current_admin, require_admin_or_owner, require_
 from app.models import AdminUser, Customer, License
 from app.schemas import (
     CustomerCreate,
+    CustomerPermanentDeleteRequest,
     CustomerResponse,
     CustomerUpdate,
     DeviceResponse,
@@ -214,6 +215,40 @@ async def delete_customer(
     return success_response(
         "Customer deleted successfully.",
         data={"customer_id": customer_id},
+    )
+
+
+@router.post(
+    "/{customer_id}/permanent-delete",
+    response_model=SuccessResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Permanent Delete Customer",
+    description="Permanently delete a customer and all associated records. Requires explicit email confirmation. Admin or Owner only.",
+)
+async def permanent_delete_customer(
+    customer_id: int,
+    request: CustomerPermanentDeleteRequest,
+    db: Annotated[Session, Depends(get_db)],
+    current_admin: Annotated[AdminUser, Depends(require_admin_or_owner)],
+) -> SuccessResponse:
+    result = CustomerService.permanent_delete_customer(
+        db,
+        customer_id,
+        confirmation_email=request.confirmation_email,
+        admin_username=current_admin.username,
+        admin_id=current_admin.id,
+    )
+    logger.info(
+        "Admin '%s' (id=%s) PERMANENTLY deleted customer id=%s (%s) at %s - Result: success",
+        current_admin.username,
+        current_admin.id,
+        customer_id,
+        result["email"],
+        get_current_time().isoformat(),
+    )
+    return success_response(
+        "Customer permanently deleted.",
+        data=result,
     )
 
 

@@ -765,6 +765,9 @@ const LOUDApp = (() => {
                                 <button class="btn-action-icon delete" onclick="promptDeleteCustomer(${c.id}, '${escapeHTML(c.name).replace(/'/g, "\\'")}', '${escapeHTML(c.email).replace(/'/g, "\\'")}')" title="Delete Customer" style="color:var(--color-danger);">
                                     <i data-lucide="trash-2"></i>
                                 </button>
+                                <button class="btn btn-danger btn-sm font-sora btn-perm-delete" onclick="promptPermanentDeleteCustomer(${c.id})" title="Permanently delete customer and all associated records" style="padding: 3px 8px; font-size: 0.72rem; font-weight: 700; background: rgba(220, 38, 38, 0.15); color: #ef4444; border: 1px solid rgba(220, 38, 38, 0.4); border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; text-transform: uppercase;">
+                                    <i data-lucide="alert-octagon" style="width:12px; height:12px;"></i> Permanent Delete
+                                </button>
                             </div>
                         </td>
                     `;
@@ -822,6 +825,92 @@ const LOUDApp = (() => {
 
     window.deleteCustomer = function(id, name = '', email = '') {
         promptDeleteCustomer(id, name, email);
+    };
+
+    let pendingPermanentDeleteCustomerId = null;
+    let pendingPermanentDeleteCustomerEmail = null;
+
+    window.promptPermanentDeleteCustomer = async function(id) {
+        pendingPermanentDeleteCustomerId = id;
+        const nameEl = document.getElementById('perm-delete-target-name');
+        const emailEl = document.getElementById('perm-delete-target-email');
+        const idEl = document.getElementById('perm-delete-target-id');
+        const inputEl = document.getElementById('perm-delete-confirm-email-input');
+        const errorEl = document.getElementById('perm-delete-email-error');
+
+        if (errorEl) errorEl.style.display = 'none';
+        if (inputEl) inputEl.value = '';
+
+        try {
+            const res = await LOUDAPI.customers.get(id);
+            const c = res.data?.customer;
+            if (c) {
+                pendingPermanentDeleteCustomerEmail = c.email;
+                if (nameEl) nameEl.textContent = c.name || 'Customer';
+                if (emailEl) emailEl.textContent = c.email || '';
+                if (idEl) idEl.textContent = `Customer ID: #${c.id}`;
+            } else {
+                if (nameEl) nameEl.textContent = `Customer #${id}`;
+                if (emailEl) emailEl.textContent = '';
+                if (idEl) idEl.textContent = `Customer ID: #${id}`;
+            }
+        } catch(e) {
+            if (nameEl) nameEl.textContent = `Customer #${id}`;
+            if (idEl) idEl.textContent = `Customer ID: #${id}`;
+        }
+
+        openModal('modal-permanent-delete-customer');
+        if (window.lucide) lucide.createIcons();
+    };
+
+    window.confirmPermanentDeleteCustomer = async function() {
+        if (!pendingPermanentDeleteCustomerId) return;
+        const targetId = pendingPermanentDeleteCustomerId;
+        const inputEl = document.getElementById('perm-delete-confirm-email-input');
+        const errorEl = document.getElementById('perm-delete-email-error');
+        const btn = document.getElementById('btn-confirm-perm-delete-customer');
+
+        const typedEmail = (inputEl ? inputEl.value : '').trim();
+        if (!typedEmail) {
+            if (errorEl) {
+                errorEl.textContent = 'Please type the customer email to confirm.';
+                errorEl.style.display = 'block';
+            }
+            return;
+        }
+
+        if (pendingPermanentDeleteCustomerEmail && typedEmail.toLowerCase() !== pendingPermanentDeleteCustomerEmail.toLowerCase()) {
+            if (errorEl) {
+                errorEl.textContent = 'Confirmation email does not match customer email.';
+                errorEl.style.display = 'block';
+            }
+            return;
+        }
+
+        if (btn) btn.disabled = true;
+
+        try {
+            await LOUDAPI.customers.permanentDelete(targetId, typedEmail);
+            showToast('Customer permanently deleted.');
+            closeModal('modal-permanent-delete-customer');
+            closeModal('modal-customer');
+            closeModal('modal-customer-details');
+
+            const row = document.getElementById(`customer-row-${targetId}`);
+            if (row) row.remove();
+
+            await renderCustomersPane();
+        } catch(e) {
+            showToast(e.message || 'Failed to permanently delete customer', 'error');
+            if (errorEl) {
+                errorEl.textContent = e.message || 'Deletion failed.';
+                errorEl.style.display = 'block';
+            }
+        } finally {
+            if (btn) btn.disabled = false;
+            pendingPermanentDeleteCustomerId = null;
+            pendingPermanentDeleteCustomerEmail = null;
+        }
     };
 
     window.editCustomer = async function(id) {

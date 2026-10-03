@@ -271,6 +271,12 @@ const LOUDAPI = (() => {
             async delete(id) {
                 return request(`/api/v1/customers/${id}`, { method: 'DELETE' });
             },
+            async permanentDelete(id, confirmationEmail) {
+                return request(`/api/v1/customers/${id}/permanent-delete`, {
+                    method: 'POST',
+                    body: JSON.stringify({ confirmation_email: confirmationEmail })
+                });
+            },
             async getLicenses(id) {
                 return request(`/api/v1/customers/${id}/licenses`, { method: 'GET' });
             },
